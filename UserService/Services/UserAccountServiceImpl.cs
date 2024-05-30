@@ -9,6 +9,7 @@ using System.Text;
 using UserService.Interface;
 using UserService.Models;
 using UserService.Protos;
+using UserService.Validations;
 
 namespace UserService.Services
 {
@@ -33,6 +34,15 @@ namespace UserService.Services
 
         public override async Task<CreateUserResponse> RegisterUser(CreateUserRequest request, ServerCallContext context)
         {
+            var validator = new CreateUserRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, errorMessages));
+            }
+
             var user = _mapper.Map<ApplicationUser>(request);
             user.UserName = request.Email;
 
@@ -62,6 +72,15 @@ namespace UserService.Services
 
         public override async Task<LoginResponse> Login(LoginRequest request, ServerCallContext context)
         {
+            var validator = new LoginRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, errorMessages));
+            }
+
             var user = await _userRepository.GetUserAsync(request.Email);
             if (user == null)
                 throw new RpcException(new Status(StatusCode.NotFound, $"user with email {request.Email} not found"));
