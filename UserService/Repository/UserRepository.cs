@@ -39,6 +39,11 @@ namespace UserService.Repository
             return true;
         }
 
+        public async Task<List<ApplicationUser>> GetAllUsers()
+        {
+            return await _context.Users.ToListAsync();
+        }
+
         public async Task<ApplicationUser> GetUserAsync(string email)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());

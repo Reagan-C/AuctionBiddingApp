@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
-using FluentValidation;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -22,16 +20,18 @@ namespace UserService.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMapper _mapper;
+        private readonly IRoleRepository _roleRepository;
 
-        public UserAccountServiceImpl(IConfiguration configuration, IUserRepository userRepository, 
-            UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, 
-            IMapper mapper)
+        public UserAccountServiceImpl(IConfiguration configuration, IUserRepository userRepository,
+            UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager,
+            IMapper mapper, IRoleRepository roleRepository)
         {
             _configuration = configuration;
             _userRepository = userRepository;
             _userManager = userManager;
             _roleManager = roleManager;
             _mapper = mapper;
+            _roleRepository=roleRepository;
         }
 
         public override async Task<CreateUserResponse> RegisterUser(CreateUserRequest request, ServerCallContext context)
@@ -67,8 +67,7 @@ namespace UserService.Services
             }
             catch (Exception)
             {
-
-                throw new RpcException(new Status(StatusCode.InvalidArgument, "Error encountered"));
+                throw;
             }
         }
 
@@ -206,6 +205,48 @@ namespace UserService.Services
                 throw new RpcException(new Status(StatusCode.Internal, result.Errors.FirstOrDefault().Description));
 
             return await Task.FromResult(new ChangePasswordResponse { Response = "Password changed" });
+        }
+
+        [Authorize(Roles = "Admin")]
+        public override async Task<GetAllResponse> GetAllUsers(GetAllRequest request, ServerCallContext context)
+        {
+            var response = new GetAllResponse();
+            var users = await _userRepository.GetAllUsers();
+
+            foreach (var user in users)
+            {
+                response.Users.Add(new GetUserResponse
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Name = user.Name,
+                    PhoneNumber = user.PhoneNumber,
+                    Username = user.UserName
+                });
+            }
+
+            return response;
+        }
+
+        [Authorize(Roles = "Admin")]
+        public override async Task<GetAdminResponse> GetAllAdmins(GetAllRequest request, ServerCallContext context)
+        {
+            var response = new GetAdminResponse();
+            var adminUsers = await _roleRepository.GetUsersByRoleAsync("Admin");
+
+            foreach (var user in adminUsers)
+            {
+                response.Admins.Add(new GetUserResponse
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Name = user.Name,
+                    PhoneNumber = user.PhoneNumber,
+                    Username = user.UserName
+                });
+            }
+
+            return response;
         }
 
         private async Task<string> GenerateJwtToken(ApplicationUser user)

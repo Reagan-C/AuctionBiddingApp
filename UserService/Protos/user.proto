@@ -2,16 +2,64 @@ syntax = "proto3";
 
 option csharp_namespace = "UserService.Protos";
 
+import "google/api/annotations.proto";
+
 package user;
 
 service UserAccountService {
-	rpc RegisterUser (CreateUserRequest) returns (CreateUserResponse);
-	rpc Login (LoginRequest) returns (LoginResponse);
-	rpc GetUser (GetUserRequest) returns (GetUserResponse);
-	rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse);
-	rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
-	rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
-	rpc AssignAdminRole(AssignRoleRequest) returns (AssignRoleResponse);
+	rpc RegisterUser (CreateUserRequest) returns (CreateUserResponse) {
+		option (google.api.http) = {
+			post: "/v1/accounts/register",
+			body: "*"
+		};
+	};
+	rpc Login (LoginRequest) returns (LoginResponse) {
+		option (google.api.http) = {
+			post: "/v1/accounts/login",
+			body: "*"
+		};
+	};
+	rpc GetUser (GetUserRequest) returns (GetUserResponse) {
+		option (google.api.http) = {
+			get: "/v1/accounts/email/{email}"
+		};
+	};
+	rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {
+		option (google.api.http) = {
+			put: "/v1/accounts",
+			body: "*"
+		};
+	};
+	rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse) {
+		option (google.api.http) = {
+			delete: "/v1/accounts",
+			body: "*"
+		};
+	};
+	rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {
+		option (google.api.http) = {
+			post: "/v1/accounts/change-password",
+			body: "*"
+		};
+	};
+	rpc AssignAdminRole(AssignRoleRequest) returns (AssignRoleResponse) {
+		option (google.api.http) = {
+			post: "/v1/accounts/assign-admin-role",
+			body: "*"
+		};
+	};
+
+	rpc GetAllUsers (GetAllRequest) returns (GetAllResponse) {
+		option (google.api.http) = {
+			get: "/v1/accounts"
+		};
+	}
+
+	rpc GetAllAdmins (GetAllRequest) returns (GetAdminResponse) {
+		option (google.api.http) = {
+			get: "/v1/accounts/admins"
+		};
+	}
 }
 
 message CreateUserRequest {
@@ -84,4 +132,14 @@ message AssignRoleRequest {
 
 message AssignRoleResponse {
 	string response = 1;
+}
+
+message GetAllRequest {}
+
+message GetAllResponse {
+	repeated GetUserResponse users = 1;
+}
+
+message GetAdminResponse {
+	repeated GetUserResponse admins = 1;
 }

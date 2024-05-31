@@ -10,5 +10,6 @@ namespace UserService.Interface
         Task CreateUserAsync(CreateUserRequest request);
         Task<bool> UpdateUserAsync(UpdateUserRequest request, ApplicationUser user);
         Task<bool> DeleteUserAsync(DeleteUserRequest request);
+        Task<List<ApplicationUser>> GetAllUsers();
     }
 }
