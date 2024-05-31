@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -96,6 +98,15 @@ namespace UserService.Services
         [Authorize]
         public override async Task<GetUserResponse> GetUser(GetUserRequest request, ServerCallContext context)
         {
+            var validator = new GetUserRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, errorMessages));
+            }
+
             var user = await _userRepository.GetUserAsync(request.Email);
             if (user == null)
                 throw new RpcException(new Status(StatusCode.NotFound, "user not found"));
@@ -107,6 +118,15 @@ namespace UserService.Services
         [Authorize]
         public override async Task<UpdateUserResponse> UpdateUser(UpdateUserRequest request, ServerCallContext context)
         {
+            var validator = new UpdateUserRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, errorMessages));
+            }
+
             var userId = context.GetHttpContext().User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null)
@@ -122,6 +142,15 @@ namespace UserService.Services
         [Authorize(Roles = "Admin")]
         public override async Task<DeleteUserResponse> DeleteUser(DeleteUserRequest request, ServerCallContext context)
         {
+            var validator = new DeleteUserRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, errorMessages));
+            }
+
             var result = await _userRepository.DeleteUserAsync(request);
             if (!result)
                 throw new RpcException(new Status(StatusCode.NotFound, "user profile not found"));
@@ -132,6 +161,14 @@ namespace UserService.Services
         [Authorize(Roles = "Admin")]
         public override async Task<AssignRoleResponse> AssignAdminRole(AssignRoleRequest request, ServerCallContext context)
         {
+            var validator = new AssignRoleRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, errorMessages));
+            }
+
             var role = "Admin";
             var user = await _userRepository.GetUserAsync(request.Email);
             var roleExists = await _roleManager.RoleExistsAsync(role);
@@ -150,8 +187,13 @@ namespace UserService.Services
         [Authorize]
         public override async Task<ChangePasswordResponse> ChangePassword(ChangePasswordRequest request, ServerCallContext context)
         {
-            if (request.NewPassword != request.ConfirmPassword)
-                throw new RpcException(new Status(StatusCode.InvalidArgument, "Passwords do not match"));
+            var validator = new ChangePasswordRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, errorMessages));
+            }
 
             var userId = context.GetHttpContext().User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var user = await _userRepository.GetUserByIdAsync(userId);

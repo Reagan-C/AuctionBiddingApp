@@ -71,7 +71,7 @@ message DeleteUserResponse {
 message ChangePasswordRequest {
 	string oldPassword = 1;
 	string newPassword = 2;
-	string confirmPassword = 3;
+	string confirmNewPassword = 3;
 }
 
 message ChangePasswordResponse {
