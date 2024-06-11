@@ -65,7 +65,7 @@ namespace RoomService.Services.Impl
             };
 
             await _roomRepository.SaveAuctionAsync(auction);
-            var message = JsonConvert.SerializeObject(new { RoomId = roomId, AuctionId = auction.Id });
+            var message = JsonConvert.SerializeObject(auction);
             await _producer.ProduceMessageAsync(message);
             Console.WriteLine(message);
             return true;

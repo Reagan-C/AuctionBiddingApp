@@ -4,7 +4,6 @@ namespace RoomService.Kafka
 {
     public class KafkaProducer : IDisposable
     {
-        private const string _topicName = "auction-start-event";
         private readonly IProducer<string, string> _producer;
         private readonly IConfiguration _configuration;
 
@@ -30,6 +29,7 @@ namespace RoomService.Kafka
         {
             try
             {
+                var _topicName = _configuration["Kafka:TopicName"];
                 await _producer.ProduceAsync(_topicName, new Message<string, string>
                 {
                     Key = Guid.NewGuid().ToString(),

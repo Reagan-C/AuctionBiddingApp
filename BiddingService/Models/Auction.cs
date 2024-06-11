@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using BiddingService.Utilities;
 
-namespace RoomService.Models
+namespace BiddingService.Models
 {
     public class Auction
     {
@@ -8,7 +8,7 @@ namespace RoomService.Models
         public int RoomId { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
-        [JsonIgnore]
-        public Room Room { get; set; }
+        public AuctionStatus Status { get; set; }
+        public List<Bid> Bids { get; set; } = new List<Bid>();
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace RoomService.Models
+﻿using Newtonsoft.Json;
+
+namespace RoomService.Models
 {
     public class Room
     {
