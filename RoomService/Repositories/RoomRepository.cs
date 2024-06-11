@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RoomService.Data;
-using RoomService.Dtos;
 using RoomService.Models;
 
 namespace RoomService.Repositories
@@ -37,6 +36,12 @@ namespace RoomService.Repositories
         public async Task<Room> GetRoomByIdAsync(int roomId)
         {
             return await _dataContext.Rooms.FirstOrDefaultAsync(r => r.Id == roomId);
+        }
+
+        public async Task SaveAuctionAsync(Auction request)
+        {
+            _dataContext.Auctions.Add(request);
+            await _dataContext.SaveChangesAsync();
         }
     }
 }

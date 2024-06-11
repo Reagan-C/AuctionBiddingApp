@@ -9,5 +9,6 @@ namespace RoomService.Repositories
         Task<ICollection<Room>> GetAllRoomsAsync();
         Task <Room> CreateRoomAsync(Room request);
         Task<bool> DeleteRoomAsync(int roomId);
+        Task SaveAuctionAsync(Auction request);
     }
 }
