@@ -4,27 +4,35 @@ using System.Text;
 
 namespace BiddingService.RabbitMq
 {
-    public class RabbitMQPublishEndpoint : IPublishEndpoint, IDisposable
+    public class RabbitMQPublishEndpoint : IPublishEndpoint
     {
-        private readonly IModel _channel;
-        private readonly string _exchangeName;
-
-        public RabbitMQPublishEndpoint(IModel channel, string exchangeName)
+        private readonly IConfiguration _configuration;
+        public RabbitMQPublishEndpoint(IConfiguration configuration)
         {
-            _channel = channel;
-            _exchangeName = exchangeName;
+            _configuration = configuration;
         }
 
         public Task Publish<T>(T message)
         {
-            var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
-            _channel.BasicPublish(_exchangeName, "", null, body);
-            return Task.CompletedTask;
-        }
+            var factory = new ConnectionFactory()
+            {
+                HostName = _configuration["RabbitMQ:HostName"],
+                UserName = _configuration["RabbitMq:UserName"],
+                Password = _configuration["RabbitMq:Password"],
+                VirtualHost = _configuration["RabbitMq:VirtualHost"]
+            };
+            var queueName = _configuration["RabbitMq:QueueName"];
 
-        public void Dispose()
-        {
-            _channel?.Dispose();
+            var connection = factory.CreateConnection();
+            using var channel = connection.CreateModel();
+
+            channel.QueueDeclare(queueName, durable: true, exclusive: true);
+
+            var jsonString = JsonConvert.SerializeObject(message);
+            var body = Encoding.UTF8.GetBytes(jsonString);
+
+            channel.BasicPublish("", queueName, body: body);
+            return Task.CompletedTask;
         }
     }
 }

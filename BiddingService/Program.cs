@@ -19,16 +19,7 @@ builder.Services.AddDbContext<BiddingDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-builder.Services.AddSingleton<IPublishEndpoint>(provider =>
-{
-    var factory = new ConnectionFactory { HostName = builder.Configuration["RabbitMQ:HostName"] };
-    var connection = factory.CreateConnection();
-    var channel = connection.CreateModel();
-    var exchangeName = builder.Configuration["RabbitMQ:ExchangeName"];
-    var exchangeType = builder.Configuration["RabbitMQ:ExchangeType"];
-    channel.ExchangeDeclare(exchangeName, exchangeType);
-    return new RabbitMQPublishEndpoint(channel, exchangeName);
-});
+builder.Services.AddScoped<IPublishEndpoint, RabbitMQPublishEndpoint>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

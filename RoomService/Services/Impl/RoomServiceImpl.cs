@@ -4,6 +4,7 @@ using RoomService.Kafka;
 using RoomService.Models;
 using RoomService.Repositories;
 using RoomService.Services.Interface;
+using RoomService.Utilities;
 
 namespace RoomService.Services.Impl
 {
@@ -60,6 +61,7 @@ namespace RoomService.Services.Impl
             var auction = new Auction
             {
                 RoomId = roomId,
+                Status = AuctionStatus.InProgress,
                 StartTime = DateTime.UtcNow,
                 EndTime = DateTime.UtcNow.AddHours(2)
             };
