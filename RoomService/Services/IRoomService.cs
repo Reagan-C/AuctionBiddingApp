@@ -1,6 +1,6 @@
 ﻿using RoomService.Dtos;
 
-namespace RoomService.Services.Interface
+namespace RoomService.Services
 {
     public interface IRoomService
     {

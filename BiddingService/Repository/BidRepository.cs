@@ -17,7 +17,7 @@ namespace BiddingService.Repository
         public async Task<Auction> GetAuctionAsync(int auctionId)
         {
             var auction = await _context.Auctions.FindAsync(auctionId);
-            return auction == null ? auction : null;
+            return auction;
         }
 
         public decimal GetHighestBidAmount(int auctionId)

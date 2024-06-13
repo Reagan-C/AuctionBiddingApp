@@ -2,10 +2,9 @@
 using BiddingService.Models;
 using BiddingService.RabbitMq;
 using BiddingService.Repository;
-using BiddingService.Services.Interface;
 using BiddingService.Utilities;
 
-namespace BiddingService.Services.Impl
+namespace BiddingService.Services
 {
     public class BidService : IBidService
     {
@@ -15,7 +14,7 @@ namespace BiddingService.Services.Impl
         public BidService(IPublishEndpoint publishEndpoint, IBidRepository bidRepository)
         {
             _publishEndpoint = publishEndpoint;
-            _bidRepository=bidRepository;
+            _bidRepository = bidRepository;
         }
 
         public async Task PlaceBid(string userId, PlaceBidRequest request)

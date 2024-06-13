@@ -2,8 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using RoomService.Data;
 using RoomService.Kafka;
 using RoomService.Repositories;
-using RoomService.Services.Impl;
-using RoomService.Services.Interface;
+using RoomService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

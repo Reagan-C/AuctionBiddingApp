@@ -1,5 +1,4 @@
 ﻿
-using BiddingService.Data;
 using BiddingService.Models;
 using BiddingService.Repository;
 using BiddingService.Utilities;
@@ -11,14 +10,13 @@ namespace BiddingService.Kafka
     public class KafkaConsumer : IHostedService
     {
         private readonly IConfiguration _configuration;
-        private readonly BiddingDbContext _dbContext;
-        private readonly IBidRepository _bidRepository;
+        private readonly IServiceProvider _serviceProvider;
 
-        public KafkaConsumer(IConfiguration configuration, BiddingDbContext dbContext, IBidRepository bidRepository)
+        public KafkaConsumer(IConfiguration configuration,
+            IServiceProvider serviceProvider)
         {
             _configuration = configuration;
-            _dbContext = dbContext;
-            _bidRepository=bidRepository;
+            _serviceProvider=serviceProvider;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -48,16 +46,20 @@ namespace BiddingService.Kafka
             return Task.CompletedTask;
         }
 
-        private void ProcessAuctionStarted(string message)
+        private async void ProcessAuctionStarted(string message)
         {
             var auction = JsonConvert.DeserializeObject<Auction>(message);
 
-            // Validate and save the auction to the database
-            if (auction != null)
+            using (var scope  = _serviceProvider.CreateScope())
             {
-                auction.Status = AuctionStatus.InProgress;
-                _bidRepository.SaveAuctionAsync(auction);
-                Console.WriteLine($"Auction {auction.Id} started successfully.");
+                var _bidRepository = scope.ServiceProvider.GetRequiredService<IBidRepository>();
+
+                // Validate and save the auction to the database
+                if (auction != null)
+                {
+                    auction.Status = AuctionStatus.InProgress;
+                    await _bidRepository.SaveAuctionAsync(auction);
+                }
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿using BiddingService.Dtos;
 
-namespace BiddingService.Services.Interface
+namespace BiddingService.Services
 {
     public interface IBidService
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RoomService.Dtos;
-using RoomService.Services.Interface;
+using RoomService.Services;
 
 namespace RoomService.Controllers
 {

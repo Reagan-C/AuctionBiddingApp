@@ -3,10 +3,9 @@ using RoomService.Dtos;
 using RoomService.Kafka;
 using RoomService.Models;
 using RoomService.Repositories;
-using RoomService.Services.Interface;
 using RoomService.Utilities;
 
-namespace RoomService.Services.Impl
+namespace RoomService.Services
 {
     public class RoomServiceImpl : IRoomService
     {
@@ -15,8 +14,8 @@ namespace RoomService.Services.Impl
 
         public RoomServiceImpl(IRoomRepository roomRepository, KafkaProducer producer)
         {
-            _roomRepository=roomRepository;
-            _producer=producer;
+            _roomRepository = roomRepository;
+            _producer = producer;
         }
 
         public async Task<CreateRoomResponse> CreateRoom(CreateRoomRequest createRoomRequest)
@@ -49,7 +48,7 @@ namespace RoomService.Services.Impl
             if (room == null)
                 return null;
 
-            return await Task.FromResult( new GetRoomResponse { Room = room});
+            return await Task.FromResult(new GetRoomResponse { Room = room });
         }
 
         public async Task<bool> StartAuction(int roomId)

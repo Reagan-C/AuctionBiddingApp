@@ -2,16 +2,12 @@ using BiddingService.Data;
 using BiddingService.Kafka;
 using BiddingService.RabbitMq;
 using BiddingService.Repository;
-using BiddingService.Services.Impl;
-using BiddingService.Services.Interface;
+using BiddingService.Services;
 using Microsoft.EntityFrameworkCore;
-using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddScoped<KafkaConsumer>();
 builder.Services.AddScoped<IBidRepository, BidRepository>();
 builder.Services.AddScoped<IBidService, BidService>();
 builder.Services.AddDbContext<BiddingDbContext>(options =>
@@ -20,6 +16,7 @@ builder.Services.AddDbContext<BiddingDbContext>(options =>
 });
 
 builder.Services.AddScoped<IPublishEndpoint, RabbitMQPublishEndpoint>();
+builder.Services.AddHostedService<KafkaConsumer>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
