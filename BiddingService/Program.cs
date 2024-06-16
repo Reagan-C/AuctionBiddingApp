@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddLogging();
 builder.Services.AddScoped<IBidRepository, BidRepository>();
 builder.Services.AddScoped<IBidService, BidService>();
 builder.Services.AddDbContext<BiddingDbContext>(options =>
@@ -17,6 +18,7 @@ builder.Services.AddDbContext<BiddingDbContext>(options =>
 
 builder.Services.AddScoped<IPublishEndpoint, RabbitMQPublishEndpoint>();
 builder.Services.AddHostedService<KafkaConsumer>();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

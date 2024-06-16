@@ -12,7 +12,7 @@ namespace BiddingService.RabbitMq
             _configuration = configuration;
         }
 
-        public Task Publish<T>(T message)
+        public Task Publish<T>(T message, string queueName)
         {
             var factory = new ConnectionFactory()
             {
@@ -21,12 +21,11 @@ namespace BiddingService.RabbitMq
                 Password = _configuration["RabbitMq:Password"],
                 VirtualHost = _configuration["RabbitMq:VirtualHost"]
             };
-            var queueName = _configuration["RabbitMq:QueueName"];
-
+            
             var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 
-            channel.QueueDeclare(queueName, durable: true, exclusive: true);
+            channel.QueueDeclare(queueName, durable: true, exclusive: false);
 
             var jsonString = JsonConvert.SerializeObject(message);
             var body = Encoding.UTF8.GetBytes(jsonString);

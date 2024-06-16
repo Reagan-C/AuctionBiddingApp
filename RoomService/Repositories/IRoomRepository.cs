@@ -10,5 +10,7 @@ namespace RoomService.Repositories
         Task <Room> CreateRoomAsync(Room request);
         Task<bool> DeleteRoomAsync(int roomId);
         Task SaveAuctionAsync(Auction request);
+        Task<Auction> GetAuctionByRoomId(int roomId);
+        Task<Room> GetRoomByName(string roomName);
     }
 }

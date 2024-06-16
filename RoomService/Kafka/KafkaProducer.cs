@@ -6,10 +6,12 @@ namespace RoomService.Kafka
     {
         private readonly IProducer<string, string> _producer;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<KafkaProducer> _logger;
 
-        public KafkaProducer(IConfiguration configuration)
+        public KafkaProducer(IConfiguration configuration, ILogger<KafkaProducer> logger)
         {
             _configuration = configuration;
+            _logger = logger;
             var producerConfig = new ProducerConfig
             {
                 BootstrapServers = _configuration["Kafka:BootstrapServers"]
@@ -38,8 +40,7 @@ namespace RoomService.Kafka
             }
             catch (ProduceException<string, string> e)
             {
-                Console.WriteLine($"Failed to deliver message: {e.Error.Reason}");
-                throw e;
+                _logger.LogError($"Failed to deliver message: {e.Error.Reason}");
             }
         }
 

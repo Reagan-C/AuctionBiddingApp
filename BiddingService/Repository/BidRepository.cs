@@ -49,5 +49,11 @@ namespace BiddingService.Repository
             _context.Bids.Add(bid);
             await _context.SaveChangesAsync();
         }
+
+        public async Task UpdateAuctionAsync(Auction auction)
+        {
+            _context.Auctions.Update(auction);
+            await _context.SaveChangesAsync();
+        }
     }
 }

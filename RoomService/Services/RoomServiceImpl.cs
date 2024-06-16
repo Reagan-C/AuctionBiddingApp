@@ -11,11 +11,13 @@ namespace RoomService.Services
     {
         private readonly IRoomRepository _roomRepository;
         private readonly KafkaProducer _producer;
+        private readonly ILogger<RoomServiceImpl> _logger;
 
-        public RoomServiceImpl(IRoomRepository roomRepository, KafkaProducer producer)
+        public RoomServiceImpl(IRoomRepository roomRepository, KafkaProducer producer, ILogger<RoomServiceImpl> logger)
         {
             _roomRepository = roomRepository;
             _producer = producer;
+            _logger=logger;
         }
 
         public async Task<CreateRoomResponse> CreateRoom(CreateRoomRequest createRoomRequest)
@@ -29,16 +31,18 @@ namespace RoomService.Services
             var createdRoom = await _roomRepository.CreateRoomAsync(room);
             if (createdRoom == null)
                 return null;
-
+            _logger.LogInformation($"Room created with ID {createdRoom.Id}");
             return await Task.FromResult(new CreateRoomResponse { Room = createdRoom, IsSuccessful = true });
         }
 
         public async Task<bool> DeleteRoom(int roomId)
         {
             var room = await _roomRepository.GetRoomByIdAsync(roomId);
-            if (room == null) return false;
+            if (room == null) 
+                return false;
 
             await _roomRepository.DeleteRoomAsync(roomId);
+            _logger.LogInformation("Deletion successful");
             return true;
         }
 
@@ -46,29 +50,32 @@ namespace RoomService.Services
         {
             var room = await _roomRepository.GetRoomByIdAsync(roomId);
             if (room == null)
+            {
+                _logger.LogWarning("Invalid Id");
                 return null;
-
+            }
             return await Task.FromResult(new GetRoomResponse { Room = room });
         }
 
-        public async Task<bool> StartAuction(int roomId)
+        public async Task<bool> StartAuction(StartAuctionRequest request)
         {
-            var room = await _roomRepository.GetRoomByIdAsync(roomId);
-            if (room == null)
+            var checkAuction = await _roomRepository.GetAuctionByRoomId(request.RoomId);
+            if (checkAuction != null)
                 return false;
 
             var auction = new Auction
             {
-                RoomId = roomId,
+                RoomId = request.RoomId,
+                ItemName = request.ItemName,
                 Status = AuctionStatus.InProgress,
-                StartTime = DateTime.UtcNow,
-                EndTime = DateTime.UtcNow.AddHours(2)
+                StartTime = DateTime.UtcNow
             };
 
             await _roomRepository.SaveAuctionAsync(auction);
+            _logger.LogInformation("Room saved");
             var message = JsonConvert.SerializeObject(auction);
             await _producer.ProduceMessageAsync(message);
-            Console.WriteLine(message);
+            _logger.LogInformation("Auction started with details {}", auction);
             return true;
         }
     }

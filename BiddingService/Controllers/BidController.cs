@@ -8,9 +8,9 @@ namespace BiddingService.Controllers
     [Route("api/[controller]")]
     public class BidController : ControllerBase
     {
-        private readonly BidService _bidService;
+        private readonly IBidService _bidService;
 
-        public BidController(BidService bidService)
+        public BidController(IBidService bidService)
         {
             _bidService = bidService;
         }
@@ -21,8 +21,11 @@ namespace BiddingService.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _bidService.PlaceBid(userId, request);
-            return Ok("Bid placed");
+            var result = await _bidService.PlaceBid(userId, request);
+            if (!result.Success) 
+                return BadRequest(result.Message);
+
+            return Ok(result.Message);
         }
 
         [HttpPost("{auctionId}/end")]
@@ -31,8 +34,11 @@ namespace BiddingService.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _bidService.EndAuction(auctionId);
-                return Ok("Auction ended");
+            var result = await _bidService.EndAuction(auctionId);
+                if (!result.Success) 
+                return BadRequest(result.Message);
+
+                return Ok(result.Message);
         }
     }
 }

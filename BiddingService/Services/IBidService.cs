@@ -4,7 +4,7 @@ namespace BiddingService.Services
 {
     public interface IBidService
     {
-        Task PlaceBid(string userId, PlaceBidRequest request);
-        Task EndAuction(int auctionId);
+        Task<BidResult> PlaceBid(string userId, PlaceBidRequest request);
+        Task<EndAuctionResult> EndAuction(int auctionId);
     }
 }

@@ -43,5 +43,17 @@ namespace RoomService.Repositories
             _dataContext.Auctions.Add(request);
             await _dataContext.SaveChangesAsync();
         }
+
+        public async Task<Auction> GetAuctionByRoomId(int roomId)
+        {
+            var auction = await _dataContext.Auctions.FirstOrDefaultAsync(ar => ar.RoomId == roomId);
+            return auction;
+        }
+
+        public async Task<Room> GetRoomByName(string roomName)
+        {
+            var room = await _dataContext.Rooms.FirstOrDefaultAsync(r => r.Name.ToLower() == roomName.ToLower());
+            return room;
+        }
     }
 }

@@ -5,8 +5,8 @@ namespace RoomService.Services
     public interface IRoomService
     {
         Task<CreateRoomResponse> CreateRoom(CreateRoomRequest createRoomRequest);
-        Task<bool> StartAuction(int roomId);
         Task<GetRoomResponse> GetRoom(int roomId);
         Task<bool> DeleteRoom(int roomId);
+        Task<bool> StartAuction(StartAuctionRequest request);
     }
 }

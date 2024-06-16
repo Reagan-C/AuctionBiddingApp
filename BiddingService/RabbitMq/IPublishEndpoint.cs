@@ -2,6 +2,6 @@
 {
     public interface IPublishEndpoint
     {
-        Task Publish<T>(T message);
+        Task Publish<T>(T message, string queueName);
     }
 }
