@@ -12,7 +12,7 @@
     <div id="messages"></div>
     <script>
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("https://localhost:5001/auctionhub")
+            .withUrl("https://localhost:7003/auctionhub")
             .configureLogging(signalR.LogLevel.Information)
             .build();
 
