@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using NotificationService.Dtos;
 using NotificationService.Events;
 using NotificationService.Hubs;
 using NotificationService.Interfaces;
@@ -20,9 +21,17 @@ namespace NotificationService.EventConsumers
         public void ConsumeEvent(string message)
         {
             var bidPlacedEvent = JsonSerializer.Deserialize<BidPlacedEvent>(message);
+            var bidPlacedDetails = new PlacedBidResponse
+            {
+                AuctionId = bidPlacedEvent.AuctionId,
+                UserId = bidPlacedEvent.UserId,
+                Amount = bidPlacedEvent.Amount,
+                ItemName = bidPlacedEvent.ItemName,
+                Timestamp = bidPlacedEvent.Timestamp.ToLocalTime()
+            };
             _hubContext.Clients.Group(bidPlacedEvent.AuctionId.ToString())
-                .SendAsync("BidUpdated", bidPlacedEvent);
-            _logger.LogInformation("Bid placement details: {}", bidPlacedEvent);
+                .SendAsync("BidUpdated", bidPlacedDetails);
+            _logger.LogInformation("Bid placed");
         }
     }
 }

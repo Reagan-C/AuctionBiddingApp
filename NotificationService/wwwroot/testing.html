@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR Auction Room Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+</head>
+<body>
+    <h1>SignalR Auction Room Test</h1>
+    <input type="text" id="auctionId" placeholder="Auction ID" />
+    <button onclick="joinAuctionRoom()">Join Auction Room</button>
+    <button onclick="leaveAuctionRoom()">Leave Auction Room</button>
+    <div id="messages"></div>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("https://localhost:5001/auctionhub")
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+
+            connection.on("AuctionEnded", function (message) {
+            const msgDiv = document.getElementById("messages");
+            const msg = document.createElement("div");
+            msg.textContent = `Auction has Ended. Winning Bid: ${JSON.stringify(message)}`;
+            msgDiv.appendChild(msg);
+        });
+
+
+        connection.on("BidUpdated", function (message) {
+            const msgDiv = document.getElementById("messages");
+            const msg = document.createElement("div");
+            msg.textContent = `Bid Placed: ${JSON.stringify(message)}`;
+            msgDiv.appendChild(msg);
+        });
+
+        connection.start().then(function () {
+            console.log("SignalR connection established.");
+        }).catch(function (err) {
+            console.error("SignalR connection error:", err.toString());
+        });
+
+        function joinAuctionRoom() {
+            const auctionIdInput = document.getElementById("auctionId").value;
+            const auctionId = parseInt(auctionIdInput, 10);
+            if (isNaN(auctionId)) {
+                console.error("Invalid auction ID. Please enter a valid number.");
+                return;
+            }
+
+            if (connection.state === signalR.HubConnectionState.Connected) {
+                connection.invoke("JoinAuctionRoom", auctionId).catch(function (err) {
+                    console.error("JoinAuctionRoom error:", err.toString());
+                });
+            } else {
+                console.error("SignalR connection is not established. Cannot join auction room.");
+            }
+        }
+
+        function leaveAuctionRoom() {
+            const auctionIdInput = document.getElementById("auctionId").value;
+            const auctionId = parseInt(auctionIdInput, 10);
+            if (isNaN(auctionId)) {
+                console.error("Invalid auction ID. Please enter a valid number.");
+                return;
+            }
+
+            if (connection.state === signalR.HubConnectionState.Connected) {
+                connection.invoke("LeaveAuctionRoom", auctionId).catch(function (err) {
+                    console.error("LeaveAuctionRoom error:", err.toString());
+                });
+            } else {
+                console.error("SignalR connection is not established. Cannot leave auction room.");
+            }
+        }
+    </script>
+</body>
+</html>
