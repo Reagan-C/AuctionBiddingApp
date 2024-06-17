@@ -23,20 +23,21 @@ namespace InvoiceService.Repositories
         public async Task<Invoice> GetInvoiceByIdAsync(int invoiceId)
         {
             var invoice = await _context.Invoices.FindAsync(invoiceId);
-            return invoice;
+            return invoice ?? new Invoice();
         }
 
-        public Task UpdateInvoiceStatusAsync(int invoiceId, InvoiceStatus status)
+        public async Task<bool> UpdateInvoiceStatusAsync(int invoiceId, InvoiceStatus status)
         {
-            var invoice = _context.Invoices.Find(invoiceId);
+            var invoice = await _context.Invoices.FindAsync(invoiceId);
             if (invoice == null)
             {
-                return Task.CompletedTask;
+                return false;
             }
 
             invoice.Status = status;
             _context.Invoices.Update(invoice);
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

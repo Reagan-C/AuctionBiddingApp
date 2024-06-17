@@ -3,7 +3,6 @@ using RoomService.Dtos;
 using RoomService.Kafka;
 using RoomService.Models;
 using RoomService.Repositories;
-using RoomService.Utilities;
 
 namespace RoomService.Services
 {
@@ -67,7 +66,6 @@ namespace RoomService.Services
             {
                 RoomId = request.RoomId,
                 ItemName = request.ItemName,
-                Status = AuctionStatus.InProgress,
                 StartTime = DateTime.UtcNow
             };
 
@@ -75,7 +73,7 @@ namespace RoomService.Services
             _logger.LogInformation("Room saved");
             var message = JsonConvert.SerializeObject(auction);
             await _producer.ProduceMessageAsync(message);
-            _logger.LogInformation("Auction started with details {}", auction);
+            _logger.LogInformation($"Auction started with details {auction}", auction);
             return true;
         }
     }

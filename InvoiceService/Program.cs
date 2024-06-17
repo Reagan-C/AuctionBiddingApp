@@ -1,37 +1,24 @@
 using InvoiceService.Data;
+using InvoiceService.Infrastructure.Config;
+using InvoiceService.Infrastructure.Messaging;
 using InvoiceService.Repositories;
 using InvoiceService.Services;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 
-// Add services to the container.
+builder.Services.AddSerilog(config =>
+    config.ReadFrom.Configuration(builder.Configuration));
 
 builder.Services.AddDbContext<InvoiceDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddSingleton<RabbitMQConnection>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IInvoiceService, InvoiceServiceImpl>();
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddHostedService<InvoiceProcessor>();
 
-var app = builder.Build();
+var host = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+host.Run();

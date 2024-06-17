@@ -7,6 +7,6 @@ namespace InvoiceService.Repositories
     {
         Task<Invoice> GetInvoiceByIdAsync(int invoiceId);
         Task<bool> CreateInvoiceAsync(Invoice invoice);
-        Task UpdateInvoiceStatusAsync(int invoiceId, InvoiceStatus status);
+        Task<bool> UpdateInvoiceStatusAsync(int invoiceId, InvoiceStatus status);
     }
 }

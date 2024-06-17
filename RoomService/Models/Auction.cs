@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using RoomService.Utilities;
 
 namespace RoomService.Models
 {
@@ -10,7 +9,6 @@ namespace RoomService.Models
         public string ItemName { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
-        public AuctionStatus Status { get; set; } = AuctionStatus.NotStarted;
         [JsonIgnore]
         public Room Room { get; set; }
     }

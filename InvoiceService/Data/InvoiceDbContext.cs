@@ -10,5 +10,15 @@ namespace InvoiceService.Data
         }
 
         public DbSet<Invoice> Invoices { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Invoice>(e =>
+            {
+                e.Property(e => e.WinningBidAmount)
+                      .HasColumnType("decimal(18, 2)");
+            });
+        }
     }
 }

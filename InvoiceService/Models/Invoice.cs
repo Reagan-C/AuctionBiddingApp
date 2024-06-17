@@ -6,9 +6,9 @@ namespace InvoiceService.Models
     {
         public int Id { get; set; }
         public int AuctionId { get; set; }
-        public string WinningBidderName { get; set; }
+        public string BidderId { get; set; } = string.Empty;
+        public string BidItemName { get; set; } = string.Empty;
         public decimal WinningBidAmount { get; set; }
-        public string ItemName { get; set; }
         public DateTime CreatedAt { get; set; }
         public InvoiceStatus Status { get; set; }
     }
