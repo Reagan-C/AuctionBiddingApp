@@ -1,6 +1,4 @@
-﻿using InvoiceService.Utilities;
-
-namespace InvoiceService.Models
+﻿namespace InvoiceService.Models
 {
     public class Invoice
     {
@@ -10,6 +8,5 @@ namespace InvoiceService.Models
         public string BidItemName { get; set; } = string.Empty;
         public decimal WinningBidAmount { get; set; }
         public DateTime CreatedAt { get; set; }
-        public InvoiceStatus Status { get; set; }
     }
 }

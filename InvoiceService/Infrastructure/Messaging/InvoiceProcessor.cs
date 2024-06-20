@@ -46,10 +46,10 @@ namespace InvoiceService.Infrastructure.Messaging
                     var paymentRequest = new
                     {
                         InvoiceId = invoice.Id,
+                        invoice.AuctionId,
                         ItemName = invoice.BidItemName,
                         BuyerId = invoice.BidderId,
-                        Amount = invoice.WinningBidAmount,
-                        PaymentStatus = invoice.Status
+                        Amount = invoice.WinningBidAmount
                     };
                     var paymentRequestAsJson = JsonConvert.SerializeObject(paymentRequest);
                     var paymentRequestBody = Encoding.UTF8.GetBytes(paymentRequestAsJson);

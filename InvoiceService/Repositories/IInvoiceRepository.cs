@@ -1,5 +1,4 @@
 ﻿using InvoiceService.Models;
-using InvoiceService.Utilities;
 
 namespace InvoiceService.Repositories
 {
@@ -7,6 +6,5 @@ namespace InvoiceService.Repositories
     {
         Task<Invoice> GetInvoiceByIdAsync(int invoiceId);
         Task<bool> CreateInvoiceAsync(Invoice invoice);
-        Task<bool> UpdateInvoiceStatusAsync(int invoiceId, InvoiceStatus status);
     }
 }

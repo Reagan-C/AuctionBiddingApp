@@ -1,6 +1,5 @@
 ﻿using InvoiceService.Models;
 using InvoiceService.Repositories;
-using InvoiceService.Utilities;
 
 namespace InvoiceService.Services
 {
@@ -25,12 +24,11 @@ namespace InvoiceService.Services
                     BidderId = invoiceDetails.BidderId,
                     WinningBidAmount = invoiceDetails.WinningBidAmount,
                     BidItemName = invoiceDetails.BidItemName,
-                    CreatedAt = DateTime.UtcNow,
-                    Status = InvoiceStatus.Pending
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 await _invoiceRepository.CreateInvoiceAsync(invoice);
-                _logger.LogInformation("Invoice created successfully. Invoice ID: {InvoiceId}", invoice.Id);
+                _logger.LogInformation($"Invoice created successfully. Invoice ID: {invoice.Id}");
 
                 return invoice;
             }
@@ -45,17 +43,5 @@ namespace InvoiceService.Services
         {
             return await _invoiceRepository.GetInvoiceByIdAsync(invoiceId);
         }
-
-        public async Task UpdateInvoiceStatusAsync(int invoiceId, InvoiceStatus status)
-        {
-            var updatedInvoice = await _invoiceRepository.UpdateInvoiceStatusAsync(invoiceId, status);
-            if (updatedInvoice == false)
-            {
-                _logger.LogError($"update operation unsuccessful for invoice {invoiceId}");
-            }
-  
-            _logger.LogInformation($"Invoice with id {invoiceId} updated");
-        }
-
     }
 }
