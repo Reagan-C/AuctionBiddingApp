@@ -10,10 +10,14 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using Newtonsoft.Json;
 using PaymentService.Dto;
+using PaymentService.Dto.PaystackResponse;
 using PaymentService.Infrastructure.config;
 using PaymentService.Models;
 using PaymentService.Repositories;
+using PaymentService.Utilities;
 using PayStack.Net;
+using System.Security.Cryptography;
+using System.Text;
 using ContentType = MimeKit.ContentType;
 
 namespace PaymentService.Services
@@ -70,46 +74,73 @@ namespace PaymentService.Services
             }
         }
 
-        public Task ProcessPaymentAsync(PaystackPaymentData paymentRequest)
+        public async Task<bool> ProcessWebhookPaymentAsync(PaystackEvent paystackEvent)
         {
-            throw new NotImplementedException();
+            if (paystackEvent.Event == "charge.success")
+            {
+                var transactionData = paystackEvent.Data;
+
+                _logger.LogInformation("Transaction Details: Reference={Reference}, Amount={Amount}, InvoiceId={InvoiceId}",
+                    transactionData.Reference, transactionData.Amount, transactionData.Metadata.InvoiceId);
+
+                var isProcessed = await _paymentRepository.IsPaymentProcessed(transactionData.Reference);
+
+                if (isProcessed)
+                {
+                    _logger.LogWarning($"Invoice reference {transactionData.Reference} already processed");
+                    return false;
+                }
+
+                if (transactionData.Status == "success" && transactionData.Metadata != null)
+                {
+                    var invoiceId = transactionData.Metadata.InvoiceId;
+                    var updateStatus = await _paymentRepository.UpdateInvoiceStatusAsync(invoiceId, InvoiceStatus.Paid);
+
+                    if (!updateStatus)
+                    {
+                        _logger.LogWarning($"Update operation failed for invoice with ID {invoiceId}");
+                        return false;
+                    }
+
+                    var payment = new Payment
+                    {
+                        InvoiceId = invoiceId,
+                        Amount = transactionData.Amount / 100.0m,
+                        Currency = transactionData.Currency,
+                        TransactionRef = transactionData.Reference,
+                        CreatedAt = transactionData.CreatedAt,
+                        PaidAt = transactionData.PaidAt,
+                        Email = paystackEvent.Customer.Email
+                    };
+
+                    await _paymentRepository.SavePaymentAsync(payment);
+                    await _paymentRepository.SaveChangesAsync();
+
+                    var invoice = await _paymentRepository.GetInvoiceByIdAsync(invoiceId);
+                    var pdfBytes = await GenerateInvoicePdfAsync(invoice);
+
+                    await SendInvoiceEmailAsync(payment, pdfBytes);
+                    return true;
+                }
+                return false;
+            }
+            return false;
         }
 
-        public async Task VerifyPaymentCallbackAsync(string reference)
+        public bool VerifySignature(string jsonPayload, string actualSignature)
         {
-            try
+            using var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(_paystackSettings.SecretKey));
+            byte[] expectedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(jsonPayload));
+
+            byte[] actualHash = new byte[expectedHash.Length];
+            if (!Convert.TryFromBase64String(actualSignature, actualHash, out _))
             {
-
-                var response = _payStackApi.Transactions.Verify(reference);
-                if (response.Status && response.Data.Status == "success")
-                {
-                    // var invoiceId = response.Data.Metadata.("invoice_id");
-
-                    // Retrieve the invoice details based on the invoiceId
-                    //var invoice = await GetInvoiceAsync(invoiceId);
-
-                    // Update the invoice status to "Paid"
-                    //await UpdateInvoiceStatusAsync(invoiceId, "Paid");
-
-                    // Generate the PDF invoice
-                    // var pdfBytes = await GenerateInvoicePdfAsync(invoice);
-
-                    // Send email notification with the PDF invoice attached
-                    // await SendInvoiceEmailAsync(invoice, pdfBytes);
-
-                    //  _logger.LogInformation("Payment processed successfully for invoice {InvoiceId}", invoiceId);
-                }
-                else
-                {
-                    //  _logger.LogError("Failed to verify payment. Reference: {Reference}, Error: {Error}", reference, response.Content);
-                }
+                _logger.LogError("Signature ca not be verified");
+                return false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while processing payment callback. Reference: {Reference}", reference);
-            }
+            _logger.LogInformation("Signature verified");
+            return CryptographicOperations.FixedTimeEquals(expectedHash, actualHash);
         }
-
         private async Task<byte[]> GenerateInvoicePdfAsync(Invoice invoice)
         {
             using var ms = new MemoryStream();
@@ -165,15 +196,15 @@ namespace PaymentService.Services
             document.Add(createdAt);
 
             document.Close();
-
+            _logger.LogInformation("Invoice PDF created");
             return await Task.FromResult(ms.ToArray());
         }
 
-        private async Task SendInvoiceEmailAsync(Invoice invoice, byte[] pdfBytes)
+        private async Task SendInvoiceEmailAsync(Payment payment, byte[] pdfBytes)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("Your App", _emailSettings.FromEmail));
-            message.To.Add(new MailboxAddress("", invoice.BuyerId));
+            message.To.Add(new MailboxAddress("", payment.Email));
             message.Subject = "Invoice Details";
 
             var bodyBuilder = new BodyBuilder();
@@ -188,7 +219,7 @@ namespace PaymentService.Services
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
 
-            _logger.LogInformation("Invoice email sent for invoice {InvoiceId}", invoice.Id);
+            _logger.LogInformation("Invoice email sent for invoice {InvoiceId}", payment.InvoiceId);
         }
 
         private static string GenerateUniqueReference()

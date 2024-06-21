@@ -41,28 +41,7 @@ namespace PaymentService.Controllers
                 _logger.LogWarning("Payment callback received without a reference.");
                 return BadRequest("Invalid payment callback request.");
             }
-
-            _logger.LogInformation($"Payment completed with reference: {reference}");
-            // Implement logic to handle the callback, e.g., verify the payment status with Paystack
-            if (await _paymentService.IsPaymentProcessed(reference))
-            {
-                return View("PaymentSuccess");
-            }
-
-            // Verify the payment with Paystack
-            var verificationResponse = await _paystackClient.VerifyTransaction(reference);
-            if (verificationResponse.Status)
-            {
-                // Process the payment
-                await _paymentService.ProcessPaymentAsync(verificationResponse.Data);
-                return View("PaymentSuccess");
-            }
-            else
-            {
-                _logger.LogError($"Payment verification failed for reference: {reference}");
-                return View("PaymentFailed");
-            }
-            
+            return Ok();
         }
     }
 }

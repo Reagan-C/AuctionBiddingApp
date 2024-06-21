@@ -1,8 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PaymentService.Dto;
+using PaymentService.Dto.PaystackResponse;
 using PaymentService.Services;
 
 namespace PaymentService.Controllers
@@ -25,44 +24,19 @@ namespace PaymentService.Controllers
         {
             using (var reader = new StreamReader(Request.Body))
             {
-                var json = await reader.ReadToEndAsync();
-                var signature = Request.Headers["x-paystack-signature"].FirstOrDefault();
+                var requestBody = await reader.ReadToEndAsync();
+                var signature = Request.Headers["X-Paystack-Signature"].FirstOrDefault();
+                var verifySignature = _paymentService.VerifySignature(requestBody, signature);
 
-                if (!VerifySignature(json, signature))
+                if (verifySignature)
                 {
-                    _logger.LogWarning("Invalid Paystack signature.");
-                    return Unauthorized();
+                    var paystackEvent = JsonConvert.DeserializeObject<PaystackEvent>(requestBody);
+                    await _paymentService.ProcessWebhookPaymentAsync(paystackEvent);
                 }
-
-                var webhookEvent = JObject.Parse(json);
-                var eventType = webhookEvent["event"].ToString();
-                _logger.LogInformation($"Received Paystack event: {eventType}");
-
-                switch (eventType)
-                {
-                    case "charge.success":
-                        var data = webhookEvent["data"];
-                        var metadataJson = data["metadata"].ToString();
-                        var metadata = JsonConvert.DeserializeObject<dynamic>(metadataJson);
-
-                        var cancelAuctionUrl = metadata.cancel_auction;
-                        var invoiceId = metadata.invoice_id;
-                        var paymentData = webhookEvent["data"].ToObject<PaystackPaymentData>();
-                        await _paymentService.ProcessPaymentAsync(paymentData);
-                        _logger.LogInformation($"Processed payment with reference: {paymentData.Reference}");
-                        break;
-
-                    // Handle other event types as needed
-
-                    default:
-                        _logger.LogInformation($"Unhandled Paystack event: {eventType}");
-                        break;
-                }
-
-                return Ok();
             }
+            return Ok();
         }
-         
+
     }
 
 

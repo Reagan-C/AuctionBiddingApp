@@ -35,7 +35,6 @@ namespace PaymentService.Repositories
         public async Task SavePaymentAsync(Payment payment)
         {
             await _context.Payments.AddAsync(payment);
-            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> UpdateInvoiceStatusAsync(int invoiceId, InvoiceStatus status)
@@ -47,14 +46,19 @@ namespace PaymentService.Repositories
             }
 
             invoice.Status = status;
+            invoice.UpdatedAt = DateTime.UtcNow;
             _context.Invoices.Update(invoice);
-            await _context.SaveChangesAsync();
             return true;
         }
 
         public async Task<Invoice> FindInvoiceByAuctionIdAsync(int auctionId)
         {
             return await _context.Invoices.FirstOrDefaultAsync(i => i.AuctionId == auctionId);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

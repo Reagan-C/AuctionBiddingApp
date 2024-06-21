@@ -10,6 +10,7 @@ namespace PaymentService.Models
         public string Currency { get; set; } = string.Empty;
         public string TransactionRef { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime PaidAt { get; set; } = DateTime.UtcNow;
 
     }
 }

@@ -11,5 +11,6 @@ namespace PaymentService.Repositories
         Task SavePaymentAsync(Payment payment);
         Task<bool> IsPaymentProcessed(string transactionRef);
         Task<Invoice> FindInvoiceByAuctionIdAsync(int auctionId);
+        Task SaveChangesAsync();
     }
 }
