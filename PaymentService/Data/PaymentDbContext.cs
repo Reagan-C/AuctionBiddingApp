@@ -19,6 +19,12 @@ namespace PaymentService.Data
                 p.Property(p => p.Amount)
                 .HasColumnType("decimal(18, 2)");
             });
+
+            modelBuilder.Entity<Invoice>(p =>
+            {
+                p.Property(p => p.Amount)
+                .HasColumnType("decimal(18, 2)");
+            });
         }
     }
 

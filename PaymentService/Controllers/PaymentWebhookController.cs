@@ -7,7 +7,7 @@ using PaymentService.Services;
 namespace PaymentService.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/webhook")]
     public class PaymentWebhookController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
@@ -19,22 +19,33 @@ namespace PaymentService.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost("process")]
         public async Task<IActionResult> HandleWebhook()
         {
-            using (var reader = new StreamReader(Request.Body))
+            try
             {
-                var requestBody = await reader.ReadToEndAsync();
-                var signature = Request.Headers["X-Paystack-Signature"].FirstOrDefault();
-                var verifySignature = _paymentService.VerifySignature(requestBody, signature);
-
-                if (verifySignature)
+                using (var reader = new StreamReader(Request.Body))
                 {
+                    var requestBody = await reader.ReadToEndAsync();
+                    var signature = Request.Headers["X-Paystack-Signature"].FirstOrDefault();
+                    var verifySignature = _paymentService.VerifySignature(requestBody, signature);
+
+                    if (!verifySignature)
+                    {
+                        _logger.LogWarning("Signature verification failed");
+                        return BadRequest("Signature verification failed");
+                    }
                     var paystackEvent = JsonConvert.DeserializeObject<PaystackEvent>(requestBody);
+                    _logger.LogInformation("Request body deserialized");
                     await _paymentService.ProcessWebhookPaymentAsync(paystackEvent);
+                    return Ok("Payment completed");
                 }
             }
-            return Ok();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception encountered while processing payment");
+                return StatusCode(500, "Error encountered while processing payment");
+            }
         }
 
     }

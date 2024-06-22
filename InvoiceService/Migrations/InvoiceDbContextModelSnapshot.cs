@@ -44,9 +44,6 @@ namespace InvoiceService.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("WinningBidAmount")
                         .HasColumnType("decimal(18, 2)");
 

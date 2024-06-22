@@ -7,7 +7,8 @@ namespace PaymentService.Services
     public interface IPaymentService
     {
         Task<string> InitiatePaymentAsync(PaymentRequest paymentRequest);
+        Task<bool> ProcessCallbackAsync(string reference);
         Task<bool> ProcessWebhookPaymentAsync(PaystackEvent paystackEvent);
-        bool VerifySignature(string jsonPayload, string actualSignature)
+        bool VerifySignature(string jsonPayload, string actualSignature);
     }
 }

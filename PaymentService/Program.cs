@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentService.Data;
 using PaymentService.Infrastructure.config;
+using PaymentService.Infrastructure.Messaging;
+using PaymentService.Repositories;
 using PaymentService.Services;
 using PayStack.Net;
 using Serilog;
@@ -12,7 +14,9 @@ builder.Services.AddSerilog(config =>
     config.ReadFrom.Configuration(builder.Configuration));
 
 builder.Services.AddDbContext<PaymentDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
 
 builder.Services.AddSingleton<PayStackApi>(provider =>
 {
@@ -23,6 +27,11 @@ builder.Services.AddSingleton<PayStackApi>(provider =>
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<IPaymentService, PaymentService.Services.PaymentService>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddSingleton<IInvoiceProcessor, InvoiceProcessor>();
+builder.Services.AddHostedService<InvoiceProcessorHostedService>();
+
+builder.Services.AddCors();
 
 builder.Services.Configure<PaystackSettings>(builder.Configuration.GetSection("Paystack"));
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
@@ -44,7 +53,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
-
+app.UseCors(builder => builder
+    .WithOrigins("*")
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+);
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

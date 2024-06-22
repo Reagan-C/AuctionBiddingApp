@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using PaymentService.Models;
 
 namespace PaymentService.Profiles
 {

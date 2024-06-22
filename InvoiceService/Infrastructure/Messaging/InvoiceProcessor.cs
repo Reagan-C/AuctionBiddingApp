@@ -46,7 +46,7 @@ namespace InvoiceService.Infrastructure.Messaging
                     var paymentRequest = new
                     {
                         InvoiceId = invoice.Id,
-                        invoice.AuctionId,
+                        AuctionId = invoice.AuctionId,
                         ItemName = invoice.BidItemName,
                         BuyerId = invoice.BidderId,
                         Amount = invoice.WinningBidAmount

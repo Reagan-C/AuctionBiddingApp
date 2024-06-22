@@ -17,7 +17,7 @@ namespace PaymentService.Repositories
 
         public async Task<Invoice> GetInvoiceByIdAsync(int invoiceId)
         {
-            return await _context.Invoices.FindAsync(invoiceId) 
+            return await _context.Invoices.FirstOrDefaultAsync(i => i.InvoiceId == invoiceId) 
                 ?? new Invoice();
         }
 
@@ -39,7 +39,7 @@ namespace PaymentService.Repositories
 
         public async Task<bool> UpdateInvoiceStatusAsync(int invoiceId, InvoiceStatus status)
         {
-            var invoice = await _context.Invoices.FindAsync(invoiceId);
+            var invoice = await _context.Invoices.FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
             if (invoice == null)
             {
                 return false;

@@ -71,27 +71,18 @@ namespace PaymentService.Services
             };
 
             _channel.BasicConsume(_invoiceQueue, autoAck: true, consumer: consumer);
-
-            try
-            {
-                await Task.Delay(Timeout.Infinite, linkedCts.Token);
-            }
-            catch (TaskCanceledException ex)
-            {
-                _logger.LogError(ex, "An error occurred while processing the invoice");
-            }
         }
 
         private Invoice MapToProcessedInvoice(dynamic invoice)
         {
             return new Invoice
             {
-                InvoiceId = invoice.Id,
+                InvoiceId = invoice.InvoiceId,
                 AuctionId = invoice.AuctionId,
-                BuyerId = invoice.BidderId,
-                ItemName = invoice.BidItemName,
-                Amount = invoice.WinningBidAmount,
-                CreatedAt = invoice.CreatedAt,
+                BuyerId = invoice.BuyerId,
+                ItemName = invoice.ItemName,
+                Amount = invoice.Amount,
+                CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 Status = InvoiceStatus.Pending
             };

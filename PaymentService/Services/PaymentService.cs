@@ -56,16 +56,17 @@ namespace PaymentService.Services
                 Reference = GenerateUniqueReference(),
                 Currency = "NGN",
                 CallbackUrl = _paystackSettings.CallBackUrl,
-                Metadata = JsonConvert.SerializeObject(new
+                MetadataObject = new Dictionary<string, object>
                 {
-                    cancel_action = _paystackSettings.CancelActionUrl,
-                    invoice_id = invoice.InvoiceId
-                })
+                    { "cancel_action", _paystackSettings.CancelActionUrl },
+                    { "invoice_id", invoice.InvoiceId }
+                }
             };
 
             var response = _payStackApi.Transactions.Initialize(request);
             if (response.Status)
             {
+                _logger.LogInformation($"Sending request to Paystack: {JsonConvert.SerializeObject(request)}");
                 return response.Data.AuthorizationUrl;
             }
             else
@@ -87,19 +88,17 @@ namespace PaymentService.Services
 
                 if (isProcessed)
                 {
-                    _logger.LogWarning($"Invoice reference {transactionData.Reference} already processed");
-                    return false;
+                    throw new Exception($"Invoice reference {transactionData.Reference} already processed");
                 }
 
                 if (transactionData.Status == "success" && transactionData.Metadata != null)
                 {
-                    var invoiceId = transactionData.Metadata.InvoiceId;
+                    int invoiceId = transactionData.Metadata.InvoiceId;
                     var updateStatus = await _paymentRepository.UpdateInvoiceStatusAsync(invoiceId, InvoiceStatus.Paid);
 
                     if (!updateStatus)
                     {
-                        _logger.LogWarning($"Update operation failed for invoice with ID {invoiceId}");
-                        return false;
+                        throw new Exception($"Update operation failed for invoice with ID {invoiceId}");
                     }
 
                     var payment = new Payment
@@ -110,7 +109,7 @@ namespace PaymentService.Services
                         TransactionRef = transactionData.Reference,
                         CreatedAt = transactionData.CreatedAt,
                         PaidAt = transactionData.PaidAt,
-                        Email = paystackEvent.Customer.Email
+                        Email = transactionData.Customer.Email
                     };
 
                     await _paymentRepository.SavePaymentAsync(payment);
@@ -120,26 +119,106 @@ namespace PaymentService.Services
                     var pdfBytes = await GenerateInvoicePdfAsync(invoice);
 
                     await SendInvoiceEmailAsync(payment, pdfBytes);
+                    _logger.LogInformation("Payment completed");
                     return true;
                 }
-                return false;
+                else
+                {
+                    throw new Exception("Metadata not found in transaction data");
+                }
             }
-            return false;
+            else
+            {
+                throw new Exception("Payment not successful");
+            }
+        }
+
+        public async Task<bool> ProcessCallbackAsync(string reference)
+        {
+            var response = _payStackApi.Transactions.Verify(reference);
+
+            if (response.Status && response.Data.Status == "success")
+            {
+                var transactionData = response.Data;
+
+                var isProcessed = await _paymentRepository.IsPaymentProcessed(reference);
+
+                if (isProcessed)
+                {
+                    throw new Exception($"Invoice reference {transactionData.Reference} already processed");
+                }
+                // Check if Metadata exists and contains InvoiceId
+                if (transactionData.Metadata != null && transactionData.Metadata.ContainsKey("invoice_id"))
+                {
+                    if (int.TryParse(transactionData.Metadata["invoice_id"].ToString(), out int invoiceId))
+                    {
+                        _logger.LogInformation("Transaction Details: Reference={Reference}, Amount={Amount}, InvoiceId={InvoiceId}",
+                            transactionData.Reference, transactionData.Amount, invoiceId);
+
+                        var updateStatus = await _paymentRepository.UpdateInvoiceStatusAsync(invoiceId, InvoiceStatus.Paid);
+
+                        if (!updateStatus)
+                        {
+                            throw new Exception($"Update operation failed for invoice with ID {invoiceId}");
+                        }
+
+                        var payment = new Payment
+                        {
+                            InvoiceId = invoiceId,
+                            Amount = transactionData.Amount / 100.0m,
+                            Currency = transactionData.Currency,
+                            TransactionRef = reference,
+                            CreatedAt = transactionData.TransactionDate,
+                            PaidAt = transactionData.TransactionDate,
+                            Email = transactionData.Customer.Email,
+                        };
+                        await _paymentRepository.SavePaymentAsync(payment);
+                        await _paymentRepository.SaveChangesAsync();
+
+                        var invoice = await _paymentRepository.GetInvoiceByIdAsync(invoiceId);
+                        var pdfBytes = await GenerateInvoicePdfAsync(invoice);
+
+                        await SendInvoiceEmailAsync(payment, pdfBytes);
+                        _logger.LogInformation("Payment completed");
+                        return true;
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to parse InvoiceId from metadata");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Metadata or InvoiceId not found in transaction data");
+                }
+            }
+            else
+            {
+                throw new Exception("Verification error");
+            }
         }
 
         public bool VerifySignature(string jsonPayload, string actualSignature)
         {
             using var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(_paystackSettings.SecretKey));
-            byte[] expectedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(jsonPayload));
+            byte[] computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(jsonPayload));
 
-            byte[] actualHash = new byte[expectedHash.Length];
-            if (!Convert.TryFromBase64String(actualSignature, actualHash, out _))
+            string computedSignature = BitConverter.ToString(computedHash).Replace("-", "").ToLower();
+
+            _logger.LogInformation($"Computed Signature: {computedSignature}");
+            _logger.LogInformation($"Actual Signature: {actualSignature}");
+
+            bool isValid = string.Equals(computedSignature, actualSignature, StringComparison.OrdinalIgnoreCase);
+
+            if (!isValid)
             {
-                _logger.LogError("Signature ca not be verified");
-                return false;
+                throw new Exception("Signature verification failure");
             }
-            _logger.LogInformation("Signature verified");
-            return CryptographicOperations.FixedTimeEquals(expectedHash, actualHash);
+            else
+            {
+                _logger.LogInformation("Signature verified successfully");
+                return isValid;
+            }
         }
         private async Task<byte[]> GenerateInvoicePdfAsync(Invoice invoice)
         {
@@ -171,7 +250,7 @@ namespace PaymentService.Services
                 .SetMarginBottom(10);
             document.Add(auctionId);
 
-            var winningBidder = new Paragraph($"Winning Bidder Id: {invoice.BuyerId}")
+            var winningBidder = new Paragraph($"Auction winner Id: {invoice.BuyerId}")
                 .SetFont(paragraphFont)
                 .SetFontSize(12)
                 .SetMarginBottom(10);
@@ -204,7 +283,8 @@ namespace PaymentService.Services
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("Your App", _emailSettings.FromEmail));
-            message.To.Add(new MailboxAddress("", payment.Email));
+            //message.To.Add(new MailboxAddress("", payment.Email));
+            message.To.Add(new MailboxAddress("", _emailSettings.FromEmail));
             message.Subject = "Invoice Details";
 
             var bodyBuilder = new BodyBuilder();

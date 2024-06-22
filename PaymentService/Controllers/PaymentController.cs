@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 using PaymentService.Dto;
 using PaymentService.Services;
 
@@ -29,7 +28,7 @@ namespace PaymentService.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while initiating payment");
-                return StatusCode(500, "An error occurred while initiating payment");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -41,7 +40,18 @@ namespace PaymentService.Controllers
                 _logger.LogWarning("Payment callback received without a reference.");
                 return BadRequest("Invalid payment callback request.");
             }
-            return Ok();
+
+            try
+            {
+                await _paymentService.ProcessCallbackAsync(reference);
+                _logger.LogInformation("Payment successful");
+                return Ok("Payment successful");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception encountered during payment verification");
+                return StatusCode(500, "Error encountered while processing payment");
+            }
         }
     }
 }

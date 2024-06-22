@@ -5,6 +5,5 @@ namespace PaymentService.Dto.PaystackResponse
     {
         public string Event { get; set; }
         public TransactionData Data { get; set; }
-        public CustomerData Customer { get; set; }
     }
 }
