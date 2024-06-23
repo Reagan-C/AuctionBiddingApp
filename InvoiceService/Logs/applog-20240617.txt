@@ -1,0 +1,2 @@
+{"@t":"2024-06-17T14:13:08.4823459Z","@mt":"Invoice created successfully. Invoice ID: {InvoiceId}","InvoiceId":1,"SourceContext":"InvoiceService.Services.InvoiceServiceImpl"}
+{"@t":"2024-06-17T14:13:08.6359401Z","@mt":"Invoice processed successfully. Invoice ID: {InvoiceId}","InvoiceId":1,"SourceContext":"InvoiceService.Infrastructure.Messaging.InvoiceProcessor"}

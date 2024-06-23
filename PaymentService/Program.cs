@@ -31,8 +31,6 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddSingleton<IInvoiceProcessor, InvoiceProcessor>();
 builder.Services.AddHostedService<InvoiceProcessorHostedService>();
 
-builder.Services.AddCors();
-
 builder.Services.Configure<PaystackSettings>(builder.Configuration.GetSection("Paystack"));
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQ"));
@@ -53,11 +51,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
-app.UseCors(builder => builder
-    .WithOrigins("*")
-    .AllowAnyOrigin()
-    .AllowAnyMethod()
-);
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

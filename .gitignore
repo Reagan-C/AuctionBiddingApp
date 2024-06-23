@@ -1,67 +1,79 @@
-# OS Generated
-# ============
-.DS_Store
-._*
-.Spotlight-V100
-.Trashes
-Icon?
-ehthumbs.db
-[Tt]humbs.db
-[Dd]esktop.ini
-
-# Uncomment this line if you wish to ignore the asset store tools plugin
-/[Aa]ssets/AssetStoreTools*
-
-# Visual Studio cache directory
+# Ignore Visual Studio temporary files, build results, and
+# build logs
+*.log
+*.tlog
+*.vspscc
+*.vssscc
+*_i.c
+*_p.c
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
 .vs/
 
-# Gradle cache directory
-.gradle/
-
-# Visual Studio / MonoDevelop generated
-# =====================================
-[Ee]xported[Oo]bj/
-*.userprefs
-*.csproj
-*.DotSettings
-*.pidb
+# User-specific files
+*.rsuser
 *.suo
-*.sln
 *.user
-*.unityproj
-*.booproj
-.consulo/
-*.tmp
-*.svd
-*.pdb
-*.mdb
-*.opendb
-*.VC.db
+*.userosscache
+*.sln.docstates
 
-# Unity3D generated meta files
-*.pidb.meta
-*.pdb.meta
-*.mdb.meta
+# User-specific files (Mono Auto Generated)
+mono_crash.*
 
-# Unity3D generated file on crash reports
-sysinfo.txt
-*.stackdump
+# Mono auto generated files
+mono_crash.*
 
-# Builds
-*.apk
-*.aab
-*.unitypackage
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
 
-# Crashlytics generated file
-crashlytics-build.properties
+# Folder config file
+Desktop.ini
 
-# Lurking Ninja
-.idea
-.cache
-.unsaved
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
 
-[Ll]ibrary
-[Ll]ogs
-[Oo]bj
-[Tt]emp
-[Uu]ser[Ss]ettings
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# Windows dump files
+*.dmp
+
+# Windows error reporting
+*.wer
+
+# Windows media files
+*.mp3
+*.mp4
+*.avi
+*.mov
+*.wav
+
+# JetBrains Rider
+.idea/
+
+# Ignore all .NET build directories
+**/bin/
+**/obj/
