@@ -1,0 +1,15 @@
+{"@t":"2024-06-25T13:01:49.9823745Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T13:13:46.5686817Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T13:18:26.8603872Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T16:59:48.0370465Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T17:05:38.8085934Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T17:10:21.8841052Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T17:53:01.8192098Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T17:56:38.7515263Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T17:58:53.9187718Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T19:53:44.4995758Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T20:56:48.8557052Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T21:17:23.6686267Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T21:28:00.2537706Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T22:51:59.3781519Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-25T22:54:29.4674069Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}

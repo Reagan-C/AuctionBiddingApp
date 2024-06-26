@@ -1,0 +1,198 @@
+﻿using AccountsService.Dtos;
+using AccountsService.Interfaces;
+using AccountsService.Models;
+using AccountsService.Validations;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+
+namespace AccountsService.Services
+{
+    public class UserService : IUserService
+    {
+        private readonly IUserRepository _userRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IMapper _mapper;
+        private readonly IRoleRepository _roleRepository;
+        private readonly ITokenService _tokenService;
+
+        public UserService(IUserRepository userRepository, UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager, IMapper mapper, IRoleRepository roleRepository,
+            ITokenService tokenService)
+        {
+            _userRepository = userRepository;
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _mapper = mapper;
+            _roleRepository = roleRepository;
+            _tokenService = tokenService;
+        }
+
+        public async Task<CreateUserResponse> RegisterUser(CreateUserRequest request)
+        {
+            var validator = new CreateUserRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new Exception(errorMessages);
+            }
+
+            var user = _mapper.Map<ApplicationUser>(request);
+            user.UserName = request.Email;
+
+            try
+            {
+                var result = await _userManager.CreateAsync(user, request.Password);
+                if (result.Succeeded)
+                {
+                    var assignRole = await _userManager.AddToRoleAsync(user, "User");
+                    if (!assignRole.Succeeded)
+                    {
+                        throw new Exception(assignRole.Errors.FirstOrDefault().Description);
+                    }
+                    return await Task.FromResult(new CreateUserResponse
+                    {
+                        Message = "User registered successfully"
+                    });
+                }
+                throw new Exception(result.Errors.FirstOrDefault().Description);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<LoginResponse> Login(LoginRequest request)
+        {
+            var validator = new LoginRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new Exception(errorMessages);
+            }
+
+            var user = await _userRepository.GetUserAsync(request.Email);
+            if (user == null)
+                throw new Exception($"User with email {request.Email} not found");
+
+            bool isValid = await _userManager.CheckPasswordAsync(user, request.Password);
+            if (!isValid)
+                throw new Exception("username/password incorrect");
+
+            var token = await _tokenService.GenerateToken(user);
+            return await Task.FromResult(new LoginResponse { Token = token, Username = user.UserName });
+        }
+
+        public async Task<GetUserResponse> GetUser(GetUserRequest request)
+        {
+            var validator = new GetUserRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new Exception(errorMessages);
+            }
+
+            var user = await _userRepository.GetUserAsync(request.Email);
+            if (user == null)
+                throw new Exception("user not found");
+
+            var userResponse = _mapper.Map<GetUserResponse>(user);
+            return await Task.FromResult(userResponse);
+        }
+
+        public async Task<GetUserResponse> UpdateUser(UpdateUserRequest request, string userId)
+        {
+            var validator = new UpdateUserRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new Exception(errorMessages);
+            }
+
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+                throw new Exception("Error encountered while getting user Id");
+
+            await _userRepository.UpdateUserAsync(request, user);
+
+            var updateUserResponse = _mapper.Map<GetUserResponse>(user);
+
+            return await Task.FromResult(updateUserResponse);
+        }
+
+        public async Task<string> DeleteUser(string email)
+        {
+            var result = await _userRepository.DeleteUserAsync(email);
+            if (!result)
+                throw new Exception("user profile not found");
+
+            return "User deleted successfully";
+        }
+
+        public async Task<string> AssignAdminRole(string email)
+        {
+            var role = "Admin";
+            var user = await _userRepository.GetUserAsync(email);
+            var roleExists = await _roleManager.RoleExistsAsync(role);
+
+            if (user == null || !roleExists)
+            {
+                throw new Exception("user/role not found");
+            }
+
+            await _userManager.AddToRoleAsync(user, role);
+
+
+            return $"{user.Email} has been made an {role}";
+        }
+
+        public async Task<string> ChangePassword(ChangePasswordRequest request, string userid)
+        {
+            var validator = new ChangePasswordRequestValidator();
+            var validationResult = await validator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var errorMessages = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                throw new Exception(errorMessages);
+            }
+
+            var user = await _userRepository.GetUserByIdAsync(userid);
+
+            if (user == null)
+                throw new Exception("user not found");
+
+            var result = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
+            if (!result.Succeeded)
+                throw new Exception(result.Errors.FirstOrDefault().Description);
+
+            return "Password changed";
+        }
+
+        public async Task<List<GetUserResponse>> GetAllUsers()
+        {
+            var response = new List<GetUserResponse>();
+            var users = await _userRepository.GetAllUsers();
+
+            return await Task.FromResult(_mapper.Map<List<GetUserResponse>>(users));
+        }
+
+        public async Task<List<GetUserResponse>> GetAllAdmins()
+        {
+            var response = new List<GetUserResponse>();
+            var adminUsers = await _roleRepository.GetUsersByRoleAsync("Admin");
+
+            return await Task.FromResult(_mapper.Map<List<GetUserResponse>>(adminUsers));
+        }
+
+    }
+}

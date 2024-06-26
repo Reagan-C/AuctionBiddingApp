@@ -1,0 +1,4 @@
+{"@t":"2024-06-26T00:05:56.8638995Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-26T00:17:14.7629793Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-26T00:30:52.3550476Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-26T00:34:40.3488123Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}

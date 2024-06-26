@@ -1,71 +1,119 @@
 ﻿{
   "Routes": [
     {
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7006
+        }
+      ],
+      "UpstreamPathTemplate": "/api/auth/{everything}",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/user/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7006
+        }
+      ],
+      "UpstreamPathTemplate": "/api/user/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "DELETE", "PUT" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
       "DownstreamPathTemplate": "/api/rooms/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5001
+          "Port": 7001
         }
       ],
       "UpstreamPathTemplate": "/api/rooms/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamHttpMethod": [ "GET", "POST", "DELETE" ],
       "AuthenticationOptions": {
-        "AuthenticationProviderKey": "AuctionAuthScheme",
+        "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
       }
     },
     {
-      "DownstreamPathTemplate": "/api/bidding/{everything}",
+      "DownstreamPathTemplate": "/api/bid/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5002
+          "Port": 7002
         }
       ],
-      "UpstreamPathTemplate": "/api/bidding/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamPathTemplate": "/api/bid/{everything}",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Priority": 2,
       "AuthenticationOptions": {
-        "AuthenticationProviderKey": "AuctionAuthScheme",
+        "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
       }
     },
     {
-      "DownstreamPathTemplate": "/api/payments/{everything}",
+      "DownstreamPathTemplate": "/api/payment/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5003
+          "Port": 7005
         }
       ],
-      "UpstreamPathTemplate": "/api/payments/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamPathTemplate": "/api/payment/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST" ],
+      "Priority": 2,
       "AuthenticationOptions": {
-        "AuthenticationProviderKey": "AuctionAuthScheme",
+        "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
       }
     },
     {
-      "DownstreamPathTemplate": "/api/invoices/{everything}",
+      "DownstreamPathTemplate": "/api/webhook/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5004
+          "Port": 7005
         }
       ],
-      "UpstreamPathTemplate": "/api/invoices/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamPathTemplate": "/api/webhook/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST" ],
+      "Priority": 2,
       "AuthenticationOptions": {
-        "AuthenticationProviderKey": "AuctionAuthScheme",
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7003
+        }
+      ],
+      "UpstreamPathTemplate": "/chatroom",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "Priority": 2,
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
       }
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:5000"
+    "BaseUrl": "https://localhost:7000"
   }
 }
