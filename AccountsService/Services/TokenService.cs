@@ -1,10 +1,12 @@
 ﻿using AccountsService.Infrastructure.config;
 using AccountsService.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace AccountsService.Services
@@ -19,6 +21,22 @@ namespace AccountsService.Services
         {
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
+        }
+
+        public async Task<RefreshToken> GenerateRefreshToken(string ipAddress)
+        {
+            var randomBytes = new byte[64];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+            return await Task.FromResult(new RefreshToken
+            {
+                Token = Convert.ToBase64String(randomBytes),
+                Expires = DateTime.UtcNow.AddDays(7),
+                Created = DateTime.UtcNow,
+                CreatedByIp = ipAddress
+            });
         }
 
         public async Task<string> GenerateToken(ApplicationUser user)
@@ -43,7 +61,7 @@ namespace AccountsService.Services
                 Subject = new ClaimsIdentity(claims),
                 Issuer = _jwtSettings.Issuer,
                 Audience = _jwtSettings.Audience,
-                Expires = DateTime.UtcNow.AddDays(_jwtSettings.ExpirationInDays),
+                Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationInMins),
                 SigningCredentials = signingCredentials
             };
 
@@ -51,6 +69,37 @@ namespace AccountsService.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return await Task.FromResult(tokenHandler.WriteToken(token));
+        }
+
+        public async Task<(RefreshToken, string)> RefreshJwtToken(string refreshToken, string ipAddress)
+        {
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == refreshToken));
+
+            if (user == null)
+                throw new SecurityTokenException("Invalid refresh token");
+
+            var oldRefreshToken = user.RefreshTokens.Single(x => x.Token == refreshToken);
+
+            if (!oldRefreshToken.IsActive)
+                throw new SecurityTokenException("Invalid refresh token");
+
+            // Revoke the old refresh token and generate a new one (sliding expiration)
+            RevokeRefreshToken(oldRefreshToken, ipAddress, "Replaced by new token", null);
+            var newRefreshToken = await GenerateRefreshToken(ipAddress);
+            user.RefreshTokens.Add(newRefreshToken);
+
+            await _userManager.UpdateAsync(user);
+            // Generate new JWT
+            var newJwtToken = await GenerateToken(user);
+
+            return (newRefreshToken, newJwtToken);
+        }
+
+        public void RevokeRefreshToken(RefreshToken token, string ipAddress, string reason, string? replacedByToken)
+        {
+            token.Revoked = DateTime.UtcNow;
+            token.RevokedByIp = ipAddress;
+            token.ReplacedByToken = replacedByToken;
         }
     }
 }

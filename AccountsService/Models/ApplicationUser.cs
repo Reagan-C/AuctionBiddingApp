@@ -6,5 +6,7 @@ namespace AccountsService.Models
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        [PersonalData]
+        public List<RefreshToken> RefreshTokens { get; set; }
     }
 }

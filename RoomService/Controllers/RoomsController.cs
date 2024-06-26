@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RoomService.Dtos;
 using RoomService.Repositories;
 using RoomService.Services;
@@ -7,6 +8,7 @@ namespace RoomService.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize (Roles = "Admin")]
     public class RoomsController : ControllerBase
     {
         private readonly IRoomService _roomService;

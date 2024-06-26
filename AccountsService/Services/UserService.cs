@@ -3,8 +3,8 @@ using AccountsService.Interfaces;
 using AccountsService.Models;
 using AccountsService.Validations;
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AccountsService.Services
 {
@@ -66,7 +66,7 @@ namespace AccountsService.Services
             }
         }
 
-        public async Task<LoginResponse> Login(LoginRequest request)
+        public async Task<LoginResponse> Login(LoginRequest request, string ipAddress)
         {
             var validator = new LoginRequestValidator();
             var validationResult = await validator.ValidateAsync(request);
@@ -86,7 +86,12 @@ namespace AccountsService.Services
                 throw new Exception("username/password incorrect");
 
             var token = await _tokenService.GenerateToken(user);
-            return await Task.FromResult(new LoginResponse { Token = token, Username = user.UserName });
+            var refreshToken = await _tokenService.GenerateRefreshToken(ipAddress);
+
+            user.RefreshTokens.Add(refreshToken);
+            await _userManager.UpdateAsync(user);
+
+            return await Task.FromResult(new LoginResponse { Token = token, RefreshToken = refreshToken.Token });
         }
 
         public async Task<GetUserResponse> GetUser(GetUserRequest request)
@@ -194,5 +199,21 @@ namespace AccountsService.Services
             return await Task.FromResult(_mapper.Map<List<GetUserResponse>>(adminUsers));
         }
 
+        public async Task<(RefreshToken, string)> RefreshJwtToken(string refreshToken, string ipAddress)
+        {
+            var (newRefreshToken, newJwtToken) = await _tokenService.RefreshJwtToken(refreshToken, ipAddress);
+            return (newRefreshToken, newJwtToken);
+        }
+
+        public async Task Logout(string refreshToken, string ipAddress)
+        {
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token.Equals( refreshToken)));
+            if (user != null)
+            {
+                var token = user.RefreshTokens.Single(x => x.Token == refreshToken);
+                _tokenService.RevokeRefreshToken(token, ipAddress, "", "");
+                await _userManager.UpdateAsync(user);
+            }
+        }
     }
 }

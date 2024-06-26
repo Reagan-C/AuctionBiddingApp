@@ -55,6 +55,13 @@ namespace AccountsService.Repository
             return user;
         }
 
+        public async Task<ApplicationUser> UpdateUserRefreshTokenAsync(string refreshToken)
+        {
+            var user = _context.Users.SingleOrDefault(u => u.RefreshTokens.Any(
+                t => t.Token == refreshToken));
+            return await Task.FromResult(user);
+        }
+
         public async Task<bool> UpdateUserAsync(UpdateUserRequest request, ApplicationUser existingUser)
         {
             existingUser.FirstName = request.FirstName;

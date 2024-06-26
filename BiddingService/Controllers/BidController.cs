@@ -1,11 +1,13 @@
 ﻿using BiddingService.Dtos;
 using BiddingService.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BiddingService.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BidController : ControllerBase
     {
         private readonly IBidService _bidService;
@@ -29,6 +31,7 @@ namespace BiddingService.Controllers
         }
 
         [HttpPost("{auctionId}/end")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EndAuction(int auctionId)
         {
             if (!ModelState.IsValid)

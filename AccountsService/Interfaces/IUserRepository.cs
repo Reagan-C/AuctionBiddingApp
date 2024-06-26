@@ -11,5 +11,6 @@ namespace AccountsService.Interfaces
         Task<bool> UpdateUserAsync(UpdateUserRequest request, ApplicationUser user);
         Task<bool> DeleteUserAsync(string email);
         Task<List<ApplicationUser>> GetAllUsers();
+        Task<ApplicationUser> UpdateUserRefreshTokenAsync(string refreshToken);
     }
 }

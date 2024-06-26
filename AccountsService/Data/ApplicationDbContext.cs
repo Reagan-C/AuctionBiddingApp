@@ -33,6 +33,10 @@ namespace AccountsService.Data
             };
 
             modelBuilder.Entity<IdentityRole>().HasData(roles);
+            modelBuilder.Entity<RefreshToken>()
+               .HasOne(r => r.User)
+               .WithMany(u => u.RefreshTokens)
+               .HasForeignKey(r => r.UserId);
         }
     }
 }
