@@ -2,3 +2,6 @@
 {"@t":"2024-06-26T00:17:14.7629793Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
 {"@t":"2024-06-26T00:30:52.3550476Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
 {"@t":"2024-06-26T00:34:40.3488123Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-26T20:42:15.1731093Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-26T20:54:02.5361776Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}
+{"@t":"2024-06-26T22:09:50.4763827Z","@mt":"Starting InvoiceProcessorHostedService","SourceContext":"PaymentService.Infrastructure.Messaging.InvoiceProcessorHostedService"}

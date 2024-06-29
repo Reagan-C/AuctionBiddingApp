@@ -73,19 +73,22 @@ namespace AccountsService.Services
 
         public async Task<(RefreshToken, string)> RefreshJwtToken(string refreshToken, string ipAddress)
         {
-            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == refreshToken));
+            var user = await _userManager.Users
+                .Include(u => u.RefreshTokens)
+                .SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == refreshToken));
+
 
             if (user == null)
                 throw new SecurityTokenException("Invalid refresh token");
 
-            var oldRefreshToken = user.RefreshTokens.Single(x => x.Token == refreshToken);
+            var oldRefreshToken = user.RefreshTokens.FirstOrDefault(x => x.Token == refreshToken);
 
             if (!oldRefreshToken.IsActive)
                 throw new SecurityTokenException("Invalid refresh token");
 
             // Revoke the old refresh token and generate a new one (sliding expiration)
-            RevokeRefreshToken(oldRefreshToken, ipAddress, "Replaced by new token", null);
             var newRefreshToken = await GenerateRefreshToken(ipAddress);
+            RevokeRefreshToken(oldRefreshToken, ipAddress, "Replaced by new token", newRefreshToken.Token);
             user.RefreshTokens.Add(newRefreshToken);
 
             await _userManager.UpdateAsync(user);
@@ -95,11 +98,12 @@ namespace AccountsService.Services
             return (newRefreshToken, newJwtToken);
         }
 
-        public void RevokeRefreshToken(RefreshToken token, string ipAddress, string reason, string? replacedByToken)
+        public void RevokeRefreshToken(RefreshToken token, string ipAddress, string reason, string replacedByToken)
         {
             token.Revoked = DateTime.UtcNow;
             token.RevokedByIp = ipAddress;
             token.ReplacedByToken = replacedByToken;
+            token.Reason = reason;
         }
     }
 }

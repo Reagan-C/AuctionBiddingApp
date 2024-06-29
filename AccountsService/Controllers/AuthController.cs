@@ -1,11 +1,8 @@
 ﻿using AccountsService.Dtos;
-using AccountsService.Models;
 using AccountsService.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 
 namespace AccountsService.Controllers
@@ -51,13 +48,12 @@ namespace AccountsService.Controllers
             {
                 return BadRequest(ModelState);
             }
-            
+
             try
             {
                 var response = await _userService.Login(loginRequest, IpAddress());
 
                 SetRefreshTokenCookie(response.RefreshToken);
-                _logger.LogInformation(response.ToString());
                 return Ok(response);
             }
             catch (Exception ex)
@@ -91,14 +87,24 @@ namespace AccountsService.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-            if (!string.IsNullOrEmpty(refreshToken))
+            try
             {
-                await _userService.Logout(refreshToken, IpAddress());
-            }
+                var refreshToken = Request.Cookies["refreshToken"];
+                if (string.IsNullOrEmpty(refreshToken))
+                {
+                    // No refresh token in cookie, just return success
+                    return Ok(new { message = "Logged out successfully" });
+                }
 
-            Response.Cookies.Delete("refreshToken");
-            return Ok();
+                await _userService.Logout(refreshToken, IpAddress());
+                Response.Cookies.Delete("refreshToken");
+                return Ok(new { message = "Logged out successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during logout");
+                return StatusCode(500, new { message = "An error occurred during logout" });
+            }
         }
         private void SetRefreshTokenCookie(string token)
         {

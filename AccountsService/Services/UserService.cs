@@ -207,13 +207,20 @@ namespace AccountsService.Services
 
         public async Task Logout(string refreshToken, string ipAddress)
         {
-            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token.Equals( refreshToken)));
+            var user = await _userManager.Users
+                .Include(u => u.RefreshTokens)
+                .SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token.Equals(refreshToken)));
             if (user != null)
             {
-                var token = user.RefreshTokens.Single(x => x.Token == refreshToken);
-                _tokenService.RevokeRefreshToken(token, ipAddress, "", "");
+                var token = user.RefreshTokens.FirstOrDefault(x => x.Token == refreshToken);
+                if (token == null)
+                {
+                    return;
+                }
+                _tokenService.RevokeRefreshToken(token, ipAddress, "Log out operation", "");
                 await _userManager.UpdateAsync(user);
             }
+            return;
         }
     }
 }

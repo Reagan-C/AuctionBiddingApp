@@ -1,6 +1,7 @@
 using ApiGateway.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Serilog;
@@ -47,7 +48,7 @@ builder.Services.AddAuthentication(options =>
         {
             if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
             {
-                context.Response.Headers.Add("Token-Expired", "true");
+                context.Response.Headers.Append("Token-Expired", "true");
             }
             return Task.CompletedTask;
         }
@@ -82,9 +83,15 @@ else
 app.UseSerilogRequestLogging();
 app.UseCors("CorsPolicy");
 // Global exception handling
-app.UseExceptionHandler("/Error");
 
 // Use secure headers middleware
+
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+
+await app.UseOcelot();
+
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
@@ -94,24 +101,7 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'");
     await next();
 });
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
 
-// Custom middleware to check for token expiration
-app.Use(async (context, next) =>
-{
-    await next();
-
-    if (context.Response.StatusCode == 401)
-    {
-        if (context.Response.Headers.ContainsKey("Token-Expired"))
-        {
-            await context.Response.WriteAsJsonAsync(new { message = "Token has expired" });
-        }
-    }
-});
-await app.UseOcelot();
 app.MapControllers();
 
 app.Run();

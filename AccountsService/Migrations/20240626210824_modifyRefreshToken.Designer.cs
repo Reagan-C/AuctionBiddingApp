@@ -3,6 +3,7 @@ using System;
 using AccountsService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AccountsService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240626210824_modifyRefreshToken")]
+    partial class modifyRefreshToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,9 +115,6 @@ namespace AccountsService.Migrations
                     b.Property<DateTime>("Expires")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Reason")
-                        .HasColumnType("text");
-
                     b.Property<string>("ReplacedByToken")
                         .HasColumnType("text");
 
@@ -167,13 +167,13 @@ namespace AccountsService.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "3241fcff-2389-4a59-abff-94f30fb47a08",
+                            Id = "5ce1174b-cc11-47ad-bae7-cc990298ba94",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
-                            Id = "8a81cb6e-db32-4311-ba98-9c7bf4c349f3",
+                            Id = "5e8830c4-1030-40f6-a424-31c99844c3fe",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });

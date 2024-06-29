@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using Serilog;
 using System.Text;
 
@@ -18,10 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddSerilog(config =>
-    config.ReadFrom.Configuration(builder.Configuration).MinimumLevel.Information()
-    .WriteTo.Console(outputTemplate:
-        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{Properties:j}{NewLine}")
-    .Enrich.FromLogContext());
+    config.ReadFrom.Configuration(builder.Configuration));
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -59,17 +57,6 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true
-    };
-    opt.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
-        {
-            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-            {
-                context.Response.Headers.Add("Token-Expired", "true");
-            }
-            return Task.CompletedTask;
-        }
     };
 });
 builder.Services.AddAuthorization();
@@ -142,8 +129,6 @@ else
 
 app.UseSerilogRequestLogging();
 app.UseCors("CorsPolicy");
-// Global exception handling
-app.UseExceptionHandler("/Error");
 
 // Use secure headers middleware
 app.Use(async (context, next) =>
@@ -158,19 +143,6 @@ app.Use(async (context, next) =>
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-// Custom middleware to check for token expiration
-app.Use(async (context, next) =>
-{
-    await next();
-
-    if (context.Response.StatusCode == 401)
-    {
-        if (context.Response.Headers.ContainsKey("Token-Expired"))
-        {
-            await context.Response.WriteAsJsonAsync(new { message = "Token has expired" });
-        }
-    }
-});
 app.MapControllers();
 
 app.Run();
