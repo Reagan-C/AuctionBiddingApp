@@ -63,7 +63,7 @@ namespace RoomService.Controllers
             return NoContent();
         }
 
-        [HttpPost("/start-auction")]
+        [HttpPost("start-auction")]
         public async Task<IActionResult> StartAuction(StartAuctionRequest request)
         {
             if (!ModelState.IsValid)

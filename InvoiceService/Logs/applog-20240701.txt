@@ -1,0 +1,8 @@
+{"@t":"2024-07-01T17:56:17.8296611Z","@mt":"Invoice created successfully. Invoice ID: 5","SourceContext":"InvoiceService.Services.InvoiceServiceImpl"}
+{"@t":"2024-07-01T17:56:18.1000380Z","@mt":"Invoice processed successfully. Invoice ID: {InvoiceId}","InvoiceId":5,"SourceContext":"InvoiceService.Infrastructure.Messaging.InvoiceProcessor"}
+{"@t":"2024-07-01T18:40:43.6641763Z","@mt":"Invoice created successfully. Invoice ID: 6","SourceContext":"InvoiceService.Services.InvoiceServiceImpl"}
+{"@t":"2024-07-01T18:40:43.7742323Z","@mt":"Invoice processed successfully. Invoice ID: {InvoiceId}","InvoiceId":6,"SourceContext":"InvoiceService.Infrastructure.Messaging.InvoiceProcessor"}
+{"@t":"2024-07-01T19:21:48.5774188Z","@mt":"Invoice created successfully. Invoice ID: 7","SourceContext":"InvoiceService.Services.InvoiceServiceImpl"}
+{"@t":"2024-07-01T19:21:48.6974755Z","@mt":"Invoice processed successfully. Invoice ID: {InvoiceId}","InvoiceId":7,"SourceContext":"InvoiceService.Infrastructure.Messaging.InvoiceProcessor"}
+{"@t":"2024-07-01T20:35:26.4596806Z","@mt":"Invoice created successfully. Invoice ID: 8","SourceContext":"InvoiceService.Services.InvoiceServiceImpl"}
+{"@t":"2024-07-01T20:35:26.5942114Z","@mt":"Invoice processed successfully. Invoice ID: {InvoiceId}","InvoiceId":8,"SourceContext":"InvoiceService.Infrastructure.Messaging.InvoiceProcessor"}

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PaymentService.Dto;
 using PaymentService.Services;
+using System.Security.Claims;
 
 namespace PaymentService.Controllers
 {
@@ -18,11 +20,18 @@ namespace PaymentService.Controllers
         }
 
         [HttpPost("initiate")]
+        [Authorize]
         public async Task<IActionResult> InitiatePayment(PaymentRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
-                var authorizationUrl = await _paymentService.InitiatePaymentAsync(request);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var authorizationUrl = await _paymentService.InitiatePaymentAsync(userId, request);
                 return Ok(new { AuthorizationUrl = authorizationUrl });
             }
             catch (Exception ex)

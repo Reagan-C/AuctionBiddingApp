@@ -43,27 +43,23 @@ namespace AccountsService.Services
             var user = _mapper.Map<ApplicationUser>(request);
             user.UserName = request.Email;
 
-            try
+
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (!result.Succeeded)
             {
-                var result = await _userManager.CreateAsync(user, request.Password);
-                if (result.Succeeded)
-                {
-                    var assignRole = await _userManager.AddToRoleAsync(user, "User");
-                    if (!assignRole.Succeeded)
-                    {
-                        throw new Exception(assignRole.Errors.FirstOrDefault().Description);
-                    }
-                    return await Task.FromResult(new CreateUserResponse
-                    {
-                        Message = "User registered successfully"
-                    });
-                }
                 throw new Exception(result.Errors.FirstOrDefault().Description);
             }
-            catch (Exception)
+            
+            var assignRole = await _userManager.AddToRoleAsync(user, "User");
+            if (!assignRole.Succeeded)
             {
-                throw;
+                throw new Exception(assignRole.Errors.FirstOrDefault().Description);
             }
+
+            return await Task.FromResult(new CreateUserResponse
+            {
+                Message = "User registered successfully"
+            });
         }
 
         public async Task<LoginResponse> Login(LoginRequest request, string ipAddress)

@@ -60,5 +60,10 @@ namespace PaymentService.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task<bool> InvoiceExistsAsync(string buyerId, int auctionId)
+        {
+            return await _context.Invoices.AnyAsync(invoice => invoice.BuyerId == buyerId && invoice.AuctionId == auctionId);
+        }
     }
 }

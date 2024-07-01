@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
 using Serilog;
 using System.Text;
 
@@ -103,14 +102,14 @@ builder.Services.AddSwaggerGen(c =>
             });
             c.AddServer(new OpenApiServer
             {
-                Url = "https://localhost:7006",
-                Description = "Development Server"
+                Url = "https://localhost:7000",
+                Description = "API Gateway Server"
             });
 
             c.AddServer(new OpenApiServer
             {
-                Url = "https://localhost:7000",
-                Description = "API Gateway Server"
+                Url = "https://localhost:7006",
+                Description = "Development Server"
             });
         });
 
@@ -130,6 +129,10 @@ else
 app.UseSerilogRequestLogging();
 app.UseCors("CorsPolicy");
 
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Use secure headers middleware
 app.Use(async (context, next) =>
 {
@@ -140,9 +143,6 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'");
     await next();
 });
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

@@ -2,6 +2,7 @@
 {
     public interface IInvoiceProcessor
     {
-        Task ProcessInvoicesAsync(CancellationToken cancellationToken);
+        Task ProcessInvoiceAsync(string message);
+        void StartConsuming();
     }
 }

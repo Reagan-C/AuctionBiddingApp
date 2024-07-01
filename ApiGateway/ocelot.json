@@ -89,11 +89,7 @@
       ],
       "UpstreamPathTemplate": "/api/webhook/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST" ],
-      "Priority": 2,
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
+      "Priority": 2
     },
     {
       "DownstreamPathTemplate": "/{everything}",

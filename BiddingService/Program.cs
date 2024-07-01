@@ -46,17 +46,6 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true
     };
-    opt.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
-        {
-            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-            {
-                context.Response.Headers.Add("Token-Expired", "true");
-            }
-            return Task.CompletedTask;
-        }
-    };
 });
 builder.Services.AddAuthorization();
 
@@ -102,14 +91,14 @@ builder.Services.AddSwaggerGen(c =>
             });
     c.AddServer(new OpenApiServer
     {
-        Url = "https://localhost:7002",
-        Description = "Development Server"
+        Url = "https://localhost:7000",
+        Description = "API Gateway Server"
     });
 
     c.AddServer(new OpenApiServer
     {
-        Url = "https://localhost:7000",
-        Description = "API Gateway Server"
+        Url = "https://localhost:7002",
+        Description = "Development Server"
     });
 });
 var app = builder.Build();
@@ -126,8 +115,9 @@ else
 }
 
 app.UseCors("CorsPolicy");
-// Global exception handling
-app.UseExceptionHandler("/Error");
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Use secure headers middleware
 app.Use(async (context, next) =>
@@ -138,22 +128,6 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
     context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'");
     await next();
-});
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-// Custom middleware to check for token expiration
-app.Use(async (context, next) =>
-{
-    await next();
-
-    if (context.Response.StatusCode == 401)
-    {
-        if (context.Response.Headers.ContainsKey("Token-Expired"))
-        {
-            await context.Response.WriteAsJsonAsync(new { message = "Token has expired" });
-        }
-    }
 });
 app.MapControllers();
 

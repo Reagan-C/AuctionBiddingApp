@@ -96,9 +96,9 @@ namespace AccountsService.Controllers
             }
         }
 
-        [HttpPost("assign-admin")]
+        [HttpPost("assign-admin/{email}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AssignAdminRole([FromBody] string email)
+        public async Task<IActionResult> AssignAdminRole(string email)
         {
             if (!ModelState.IsValid)
             {

@@ -1,7 +1,6 @@
 using ApiGateway.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Serilog;
@@ -82,16 +81,12 @@ else
 
 app.UseSerilogRequestLogging();
 app.UseCors("CorsPolicy");
-// Global exception handling
-
-// Use secure headers middleware
-
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
 await app.UseOcelot();
-
+// Use secure headers middleware
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");

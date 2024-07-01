@@ -70,7 +70,7 @@ namespace RoomService.Services
             };
 
             await _roomRepository.SaveAuctionAsync(auction);
-            _logger.LogInformation("Room saved");
+            _logger.LogInformation("Auction saved");
             var message = JsonConvert.SerializeObject(auction);
             await _producer.ProduceMessageAsync(message);
             _logger.LogInformation($"Auction started with details {auction}", auction);

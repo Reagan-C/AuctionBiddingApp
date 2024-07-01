@@ -25,7 +25,7 @@ builder.Services.AddDbContext<PaymentDbContext>(options =>
 builder.Services.AddSingleton<PayStackApi>(provider =>
 {
     var configuration = provider.GetService<IConfiguration>();
-    var secretKey = configuration["Paystack:SecretKey"];
+    var secretKey = configuration.GetValue<string>("Paystack:SecretKey");
     return new PayStackApi(secretKey);
 });
 
@@ -33,7 +33,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<IPaymentService, PaymentService.Services.PaymentService>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddSingleton<IInvoiceProcessor, InvoiceProcessor>();
-builder.Services.AddHostedService<InvoiceProcessorHostedService>();
+builder.Services.AddHostedService<InvoiceProcessorService>();
 
 builder.Services.Configure<PaystackSettings>(builder.Configuration.GetSection("Paystack"));
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
@@ -62,17 +62,6 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true
-    };
-    opt.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
-        {
-            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-            {
-                context.Response.Headers.Add("Token-Expired", "true");
-            }
-            return Task.CompletedTask;
-        }
     };
 });
 builder.Services.AddAuthorization();
@@ -119,14 +108,14 @@ builder.Services.AddSwaggerGen(c =>
             });
     c.AddServer(new OpenApiServer
     {
-        Url = "https://localhost:7005",
-        Description = "Development Server"
+        Url = "https://localhost:7000",
+        Description = "API Gateway Server"
     });
 
     c.AddServer(new OpenApiServer
     {
-        Url = "https://localhost:7000",
-        Description = "API Gateway Server"
+        Url = "https://localhost:7005",
+        Description = "Development Server"
     });
 });
 var app = builder.Build();
@@ -144,9 +133,9 @@ else
 
 app.UseCors("CorsPolicy");
 app.UseSerilogRequestLogging();
-// Global exception handling
-app.UseExceptionHandler("/Error");
-
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 // Use secure headers middleware
 app.Use(async (context, next) =>
 {
@@ -156,22 +145,6 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
     context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'");
     await next();
-});
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-// Custom middleware to check for token expiration
-app.Use(async (context, next) =>
-{
-    await next();
-
-    if (context.Response.StatusCode == 401)
-    {
-        if (context.Response.Headers.ContainsKey("Token-Expired"))
-        {
-            await context.Response.WriteAsJsonAsync(new { message = "Token has expired" });
-        }
-    }
 });
 app.MapControllers();
 

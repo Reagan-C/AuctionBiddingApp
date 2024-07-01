@@ -41,12 +41,18 @@ namespace PaymentService.Services
             _payStackApi = payStackApi;
         }
 
-        public async Task<string> InitiatePaymentAsync(PaymentRequest paymentRequest)
+        public async Task<string> InitiatePaymentAsync(string userId, PaymentRequest paymentRequest)
         {
             var invoice = await _paymentRepository.FindInvoiceByAuctionIdAsync(paymentRequest.AuctionId);
             if (invoice == null)
             {
                 throw new Exception($"Invoice not found for auction ID: {paymentRequest.AuctionId}");
+            }
+
+            var isBidWinner = await _paymentRepository.InvoiceExistsAsync(userId, paymentRequest.AuctionId);
+            if (!isBidWinner)
+            {
+                throw new Exception("Only the bid winner is permitted to carry out this operation");
             }
 
             var request = new TransactionInitializeRequest

@@ -2,6 +2,7 @@
 using BiddingService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BiddingService.Controllers
 {
@@ -17,12 +18,13 @@ namespace BiddingService.Controllers
             _bidService = bidService;
         }
 
-        [HttpPost("{userId}/bids")]
-        public async Task<IActionResult> PlaceBid(string userId, [FromBody] PlaceBidRequest request)
+        [HttpPost]
+        public async Task<IActionResult> PlaceBid([FromBody] PlaceBidRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _bidService.PlaceBid(userId, request);
             if (!result.Success) 
                 return BadRequest(result.Message);
@@ -38,10 +40,10 @@ namespace BiddingService.Controllers
                 return BadRequest(ModelState);
 
             var result = await _bidService.EndAuction(auctionId);
-                if (!result.Success) 
+            if (!result.Success) 
                 return BadRequest(result.Message);
 
-                return Ok(result.Message);
+            return Ok(result.Message);
         }
     }
 }
